@@ -31,9 +31,6 @@ class TypeAheadSearchSession(object):
         # Keep a record of all commands processed.
         self.commands = []
 
-    def main(self):
-        """Main search loop."""
-
     def parse_command(self, command):
         """Read, validate, and execute a command from stdin."""
         # Store this command in the list of commands we have attempted
