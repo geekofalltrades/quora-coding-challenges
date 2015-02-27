@@ -2,8 +2,8 @@ import sys
 from warnings import warn
 
 
-class TypeAheadSearch(object):
-    """Class encapsulating the action of the typeahead search."""
+class TypeAheadSearchSession(object):
+    """Class encapsulating a typeahead search session."""
 
     @property
     def num_commands(self):
@@ -31,34 +31,6 @@ class TypeAheadSearch(object):
 
     def main(self):
         """Main search loop."""
-        # Get the number of expected commands.
-        self.num_commands = self.get_num_commands(
-            sys.stdin.readline().strip()
-        )
-
-        # Fetch each command from the input.
-        for i in range(self.num_commands):
-            command = sys.stdin.readline().strip()
-
-            # If no input is available, raise a warning.
-            if not command:
-                warn(
-                    "Ecountered unexpected EOF. (Did you provide fewer"
-                    " than {} commands?)".format(self.num_commands),
-                    InputWarning
-                )
-
-            self.parse_command(command)
-
-        # Check whether any input remains, and warn, if so.
-        command = sys.stdin.readline().strip()
-        if command:
-            warn(
-                "Encountered unexpected input. (Did you provide more"
-                " than {} commands?) Lines from \"{}\" will not be"
-                " evaluated.".format(self.num_commands, command),
-                InputWarning
-            )
 
     def parse_command(self, command):
         """Read, validate, and execute a command from stdin."""
@@ -73,6 +45,38 @@ class InputWarning(UserWarning):
     """Warning raised when input is longer or shorter than expected."""
 
 
+def main(session=None):
+    """Main search loop."""
+    if not session:
+        session = TypeAheadSearchSession()
+
+    # Get the number of expected commands.
+    session.num_commands = sys.stdin.readline().strip()
+
+    # Fetch each command from the input.
+    for i in range(session.num_commands):
+        command = sys.stdin.readline().strip()
+
+        # If no input is available, raise a warning.
+        if not command:
+            warn(
+                "Ecountered unexpected EOF. (Did you provide fewer"
+                " than {} commands?)".format(session.num_commands),
+                InputWarning
+            )
+
+        session.parse_command(command)
+
+    # Check whether any input remains, and warn, if so.
+    command = sys.stdin.readline().strip()
+    if command:
+        warn(
+            "Encountered unexpected input. (Did you provide more"
+            " than {} commands?) Lines from \"{}\" will not be"
+            " evaluated.".format(session.num_commands, command),
+            InputWarning
+        )
+
+
 if __name__ == '__main__':
-    search = TypeAheadSearch()
-    search.main()
+    main()
