@@ -12,17 +12,23 @@ class TypeAheadSearch(object):
     def main(self):
         """Main search loop."""
         # Get the number of expected commands.
-        self.num_commands = self.get_num_commands()
+        self.num_commands = self.get_num_commands(
+            sys.stdin.readline().strip()
+        )
 
         # Fetch each command from the input.
         for i in range(self.num_commands):
-            try:
-                self.parse_command()
+            command = sys.stdin.readline().strip()
 
-            except InputWarning as e:
-                # warn with the InputWarning and terminate this loop.
-                warn(e.message, e.__class__, stacklevel=2)
-                break
+            # If no input is available, raise a warning.
+            if not command:
+                warn(
+                    "Ecountered unexpected EOF. (Did you provide fewer"
+                    " than {} commands?)".format(self.num_commands),
+                    InputWarning
+                )
+
+            self.parse_command(command)
 
         # Check whether any input remains, and warn, if so.
         command = sys.stdin.readline().strip()
@@ -34,10 +40,11 @@ class TypeAheadSearch(object):
                 InputWarning
             )
 
-    def get_num_commands(self):
-        """Read the number of expected commands from stdin."""
+    def get_num_commands(self, command):
+        """Validate first line of input and extract expected number of
+        commands."""
         try:
-            num_commands = int(sys.stdin.readline().strip())
+            num_commands = int(command)
 
         except ValueError:
             raise TypeError(
@@ -49,19 +56,12 @@ class TypeAheadSearch(object):
                 "First line of input must be between 1 and 20, inclusive."
             )
 
-    def parse_command(self):
+        return num_commands
+
+    def parse_command(self, command):
         """Read, validate, and execute a command from stdin."""
-        command = sys.stdin.readline().strip()
-
-        # If no input is available, raise a warning.
-        if not command:
-            raise InputWarning(
-                "Ecountered unexpected EOF. (Did you provide fewer"
-                " than {} commands?)".format(self.num_commands)
-            )
-
-        # Otherwise, store this command in the list of commands we have
-        # attempted to execute.
+        # Store this command in the list of commands we have attempted
+        # to execute.
         self.commands.append(command)
 
         # Begin parsing this command.
