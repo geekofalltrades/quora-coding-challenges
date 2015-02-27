@@ -18,14 +18,16 @@ class TypeAheadSearchSession(object):
                 "num_commands must be an integer or integer string literal."
             )
 
-        if value <= 0 or value > 20:
+        if value < 0 or value > 20:
             raise ValueError(
-                "num_commands must be between 1 and 20, inclusive."
+                "num_commands must be between 0 and 20, inclusive."
             )
 
         self._num_commands = value
 
-    def __init__(self):
+    def __init__(self, num_commands=0):
+        self.num_commands = num_commands
+
         # Keep a record of all commands processed.
         self.commands = []
 
