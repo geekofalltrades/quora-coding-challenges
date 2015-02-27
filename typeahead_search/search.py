@@ -5,6 +5,26 @@ from warnings import warn
 class TypeAheadSearch(object):
     """Class encapsulating the action of the typeahead search."""
 
+    @property
+    def num_commands(self):
+        return self._num_commands
+
+    @num_commands.setter
+    def num_commands(self, value):
+        try:
+            value = int(value)
+        except ValueError:
+            raise TypeError(
+                "num_commands must be an integer or integer string literal."
+            )
+
+        if value <= 0 or value > 20:
+            raise ValueError(
+                "num_commands must be between 1 and 20, inclusive."
+            )
+
+        self._num_commands = value
+
     def __init__(self):
         # Keep a record of all commands processed.
         self.commands = []
@@ -39,24 +59,6 @@ class TypeAheadSearch(object):
                 " evaluated.".format(self.num_commands, command),
                 InputWarning
             )
-
-    def get_num_commands(self, command):
-        """Validate first line of input and extract expected number of
-        commands."""
-        try:
-            num_commands = int(command)
-
-        except ValueError:
-            raise TypeError(
-                "First line of input must be an integer."
-            )
-
-        if num_commands <= 0 or num_commands > 20:
-            raise ValueError(
-                "First line of input must be between 1 and 20, inclusive."
-            )
-
-        return num_commands
 
     def parse_command(self, command):
         """Read, validate, and execute a command from stdin."""
