@@ -32,13 +32,25 @@ class TypeAheadSearchSession(object):
         # Keep a record of all commands processed.
         self.commands = []
 
-    def parse_command(self, command):
+    def run_command(self, command):
         """Validate and execute a search command."""
         # Store this command in the list of commands we have attempted
         # to execute.
         self.commands.append(command)
 
-        # Begin parsing this command.
+        if command.startswith('ADD '):
+            self.add(command[4:])
+        elif command.startswith('DEL '):
+            self.delete(command[4:])
+        elif command.startswith('QUERY '):
+            self.query(command[6:])
+        elif command.startswith('WQUERY '):
+            self.wquery(command[7:])
+        else:
+            raise ValueError(
+                "Command \"{}\" is not of type ADD, DEL, QUERY,"
+                " or WQUERY.".format(command)
+            )
 
 
 class InputWarning(UserWarning):
@@ -71,7 +83,7 @@ def main(session=None):
             )
             break
 
-        session.parse_command(command)
+        session.run_command(command)
 
     # Check whether any input remains, and warn, if so.
     command = sys.stdin.readline().strip()
