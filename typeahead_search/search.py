@@ -13,6 +13,7 @@ class TypeAheadSearchSession(object):
     def num_commands(self, value):
         try:
             value = int(value)
+
         except ValueError:
             raise TypeError(
                 "num_commands must be an integer or integer string literal."
@@ -32,7 +33,7 @@ class TypeAheadSearchSession(object):
         self.commands = []
 
     def parse_command(self, command):
-        """Read, validate, and execute a command from stdin."""
+        """Validate and execute a search command."""
         # Store this command in the list of commands we have attempted
         # to execute.
         self.commands.append(command)
@@ -50,19 +51,25 @@ def main(session=None):
         session = TypeAheadSearchSession()
 
     # Get the number of expected commands.
-    session.num_commands = sys.stdin.readline().strip()
+    try:
+        session.num_commands = sys.stdin.readline().strip()
+
+    except (ValueError, TypeError) as e:
+        # Raise a new exception with a more elucidating error message.
+        raise type(e)(e.args[0].replace('num_commands', "First line of input"))
 
     # Fetch each command from the input.
     for i in range(session.num_commands):
         command = sys.stdin.readline().strip()
 
-        # If no input is available, raise a warning.
+        # If no input is available, raise a warning and break from this loop.
         if not command:
             warn(
                 "Ecountered unexpected EOF. (Did you provide fewer"
                 " than {} commands?)".format(session.num_commands),
                 InputWarning
             )
+            break
 
         session.parse_command(command)
 
