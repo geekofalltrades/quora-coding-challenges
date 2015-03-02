@@ -2,6 +2,15 @@ import sys
 from warnings import warn
 
 
+class Entry(object):
+    """Simple container class for data entries."""
+    def __init__(self, type, id, score, data):
+        self.type = type
+        self.id = id
+        self.score = score
+        self.data = data
+
+
 class TypeAheadSearchSession(object):
     """Class encapsulating a typeahead search session."""
 
