@@ -52,6 +52,18 @@ class TypeAheadSearchSession(object):
                 " or WQUERY.".format(command)
             )
 
+    def add(self, command):
+        """Add a new item."""
+
+    def delete(self, command):
+        """Delete an item."""
+
+    def query(self, command):
+        """Perform a search."""
+
+    def wquery(self, command):
+        """Perform a weighted search."""
+
 
 class InputWarning(UserWarning):
     """Warning raised when input is longer or shorter than expected."""
