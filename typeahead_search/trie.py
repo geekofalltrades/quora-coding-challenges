@@ -1,12 +1,12 @@
 """A Trie (prefix tree) class for use in typeahead search.
 
-Every node in the TypeaheadSearchTrie is another TypeaheadSearchTrie instance.
+Every node in the TypeAheadSearchTrie is another TypeAheadSearchTrie instance.
 """
 
 from weakref import WeakSet
 
 
-class TypeaheadSearchTrie(object):
+class TypeAheadSearchTrie(object):
     def __init__(self):
         # The children of this node. Because ordered traversals are not
         # important, these are stored in a dictionary.
@@ -24,7 +24,7 @@ class TypeaheadSearchTrie(object):
         if word:
             self.children.setdefault(
                 word[0],
-                TypeaheadSearchTrie()
+                TypeAheadSearchTrie()
             ).add(word[1:], entry)
 
         else:

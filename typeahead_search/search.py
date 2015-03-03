@@ -1,6 +1,6 @@
 import sys
 import string
-from trie import TypeaheadSearchTrie
+from trie import TypeAheadSearchTrie
 
 
 class Entry(object):
@@ -16,7 +16,7 @@ class TypeAheadSearchSession(object):
     """Class encapsulating a typeahead search session."""
 
     def __init__(self):
-        self.trie = TypeaheadSearchTrie()
+        self.trie = TypeAheadSearchTrie()
         self.entries = {}
 
     def run_command(self, command):
