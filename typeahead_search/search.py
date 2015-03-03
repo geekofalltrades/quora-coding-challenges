@@ -51,6 +51,30 @@ class TypeAheadSearchSession(object):
 
     def query(self, command):
         """Perform a search."""
+        num_results, search_words = command.split(maxsplit=1)
+        num_results = int(num_results)
+        search_words = search_words.split()
+
+        # Get the results set for one of the search words.
+        results = self.trie.search(
+            search_words.pop().strip(string.punctuation).lower()
+        )
+
+        # Intersect the results sets for the remaining search words into
+        # the first results set.
+        for word in search_words.strip(string.punctuation).lower():
+            results &= self.trie.search(
+                word.strip(string.punctuation).lower()
+            )
+
+        output = []
+        for i, entry in enumerate(sorted(results, key=lambda e: e.score)):
+            if i >= num_results:
+                break
+
+            output.append(entry.id)
+
+        return ''.join(output)
 
     def wquery(self, command):
         """Perform a weighted search."""
