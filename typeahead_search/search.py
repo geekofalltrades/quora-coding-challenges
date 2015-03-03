@@ -14,30 +14,7 @@ class Entry(object):
 class TypeAheadSearchSession(object):
     """Class encapsulating a typeahead search session."""
 
-    @property
-    def num_commands(self):
-        return self._num_commands
-
-    @num_commands.setter
-    def num_commands(self, value):
-        try:
-            value = int(value)
-
-        except ValueError:
-            raise TypeError(
-                "num_commands must be an integer or integer string literal."
-            )
-
-        if value < 0 or value > 20:
-            raise ValueError(
-                "num_commands must be between 0 and 20, inclusive."
-            )
-
-        self._num_commands = value
-
-    def __init__(self, num_commands=0):
-        self.num_commands = num_commands
-
+    def __init__(self):
         # Keep a record of all commands processed.
         self.commands = []
 
