@@ -1,5 +1,5 @@
 import sys
-from warnings import warn
+from trie import TypeaheadSearchTrie
 
 
 class Entry(object):
@@ -15,15 +15,10 @@ class TypeAheadSearchSession(object):
     """Class encapsulating a typeahead search session."""
 
     def __init__(self):
-        # Keep a record of all commands processed.
-        self.commands = []
+        self.trie = TypeaheadSearchTrie()
 
     def run_command(self, command):
         """Validate and execute a search command."""
-        # Store this command in the list of commands we have attempted
-        # to execute.
-        self.commands.append(command)
-
         if command.startswith('ADD '):
             self.add(command[4:])
         elif command.startswith('DEL '):
@@ -51,47 +46,18 @@ class TypeAheadSearchSession(object):
         """Perform a weighted search."""
 
 
-class InputWarning(UserWarning):
-    """Warning raised when input is longer or shorter than expected."""
-
-
 def main(session=None):
     """Main search loop."""
     if not session:
         session = TypeAheadSearchSession()
 
     # Get the number of expected commands.
-    try:
-        session.num_commands = sys.stdin.readline().strip()
-
-    except (ValueError, TypeError) as e:
-        # Raise a new exception with a more elucidating error message.
-        raise type(e)(e.args[0].replace('num_commands', "First line of input"))
+    num_commands = sys.stdin.readline().strip()
 
     # Fetch each command from the input.
-    for i in range(session.num_commands):
+    for i in range(num_commands):
         command = sys.stdin.readline().strip()
-
-        # If no input is available, raise a warning and break from this loop.
-        if not command:
-            warn(
-                "Ecountered unexpected EOF. (Did you provide fewer"
-                " than {} commands?)".format(session.num_commands),
-                InputWarning
-            )
-            break
-
         session.run_command(command)
-
-    # Check whether any input remains, and warn, if so.
-    command = sys.stdin.readline().strip()
-    if command:
-        warn(
-            "Encountered unexpected input. (Did you provide more"
-            " than {} commands?) Lines from \"{}\" will not be"
-            " evaluated.".format(session.num_commands, command),
-            InputWarning
-        )
 
 
 if __name__ == '__main__':
