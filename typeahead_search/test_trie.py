@@ -1,15 +1,33 @@
 import unittest
-from trie import TypeaheadSearchTrie
+from trie import TypeAheadSearchTrie
 from search import Entry
 
 
 class TestTrie(unittest.TestCase):
     def setUp(self):
-        self.trie = TypeaheadSearchTrie()
+        self.trie = TypeAheadSearchTrie()
         self.entries = [
             Entry('user', 'u1', 0, 'Some user'),
             Entry('topic', 't1', 0, 'Some topic'),
         ]
+
+    def test_contains(self):
+        """Stored words are `in` the Trie."""
+        self.trie.add('car', self.entries[0])
+        self.assertIn('car', self.trie)
+
+    def test_contains_no_prefix(self):
+        """Prefixes of stored words are not `in` the Trie."""
+        self.trie.add('cartel', self.entries[0])
+        self.assertNotIn('car', self.trie)
+
+    def test_contains_prefix_and_whole_word(self):
+        """A stored word and stored prefix of that word are both `in` the Trie.
+        """
+        self.trie.add('car', self.entries[0])
+        self.trie.add('cartel', self.entries[1])
+        self.assertIn('car', self.trie)
+        self.assertIn('cartel', self.trie)
 
     def test_add_word(self):
         """The Trie takes on the expected form when a word is added."""
