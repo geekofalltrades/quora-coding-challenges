@@ -17,6 +17,16 @@ class TypeAheadSearchTrie(object):
         # automatically when data entries are deleted.
         self.entries = WeakSet()
 
+    def __contains__(self, word):
+        if word:
+            try:
+                return self.children[word[0]].__contains__(word[1:])
+            except KeyError:
+                return False
+
+        else:
+            return bool(self.entries)
+
     def add(self, word, entry):
         """Adds the given data entry to the given Trie word.
         The word is created in the Trie if it doesn't already exist.
