@@ -1,4 +1,5 @@
 import sys
+import string
 from trie import TypeaheadSearchTrie
 
 
@@ -40,10 +41,13 @@ class TypeAheadSearchSession(object):
         self.entries[new_entry.id] = new_entry
 
         for word in new_entry.data.lower().split():
-            self.trie.add(word, new_entry)
+            # Attempt to strip punctuation off of each word before storing
+            # it as a search token.
+            self.trie.add(word.strip(string.punctuation), new_entry)
 
     def delete(self, command):
         """Delete an item."""
+        del self.entries[command]
 
     def query(self, command):
         """Perform a search."""
