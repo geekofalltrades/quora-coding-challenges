@@ -8,7 +8,7 @@ class Entry(object):
     def __init__(self, type, id, score, data):
         self.type = type
         self.id = id
-        self.score = score
+        self.score = float(score)
         self.data = data
 
 
@@ -37,7 +37,7 @@ class TypeAheadSearchSession(object):
 
     def add(self, command):
         """Add a new item."""
-        new_entry = Entry(*command.split(maxsplit=3))
+        new_entry = Entry(*command.split(None, 3))
         self.entries[new_entry.id] = new_entry
 
         for word in new_entry.data.lower().split():
@@ -51,7 +51,7 @@ class TypeAheadSearchSession(object):
 
     def query(self, command):
         """Perform a search."""
-        num_results, search_words = command.split(maxsplit=1)
+        num_results, search_words = command.split(None, 1)
         num_results = int(num_results)
         search_words = search_words.split()
 
