@@ -16,6 +16,7 @@ class TypeAheadSearchSession(object):
 
     def __init__(self):
         self.trie = TypeaheadSearchTrie()
+        self.entries = {}
 
     def run_command(self, command):
         """Validate and execute a search command."""
@@ -35,6 +36,11 @@ class TypeAheadSearchSession(object):
 
     def add(self, command):
         """Add a new item."""
+        new_entry = Entry(*command.split(maxsplit=3))
+        self.entries[new_entry.id] = new_entry
+
+        for word in new_entry.data.lower().split():
+            self.trie.add(word, new_entry)
 
     def delete(self, command):
         """Delete an item."""
