@@ -76,7 +76,7 @@ class TestTypeAheadSearchSession(unittest.TestCase):
         # Repeat so we have some minimal confidence that the WeakSet
         # at each Trie node is dropping entries in a timely fashion.
         for i in range(100):
-            self.search.add('question q1 0.3 How do I door?')
+            self.search.add("question q1 0.3 How do I door?")
             self.assertTrue(all(
                 s in self.search.trie
                 for s in ('how', 'do', 'i', 'door'))
@@ -88,6 +88,35 @@ class TestTypeAheadSearchSession(unittest.TestCase):
                 for s in ('how', 'do', 'i', 'door'))
             )
             self.assertNotIn('q1', self.search.entries)
+
+    def test_query_single_whole_term(self):
+        """Retrieve an entry by searching a whole term."""
+        self.search.add("question q1 0.3 This is a question.")
+        self.search.add("user u1 0.3 Blargh Blarghson")
+
+        result = self.search.query("10 question")
+        self.assertEqual(len(result), 1)
+        self.assertIn(self.search.entries['q1'], result)
+
+    def test_query_single_prefix(self):
+        """Retrieve an entry with a prefix of one of its search tokens."""
+        self.search.add("question q1 0.3 This is a question.")
+        self.search.add("user u1 0.3 Blargh Blarghson")
+
+        result = self.search.query("10 ques")
+        self.assertEqual(len(result), 1)
+        self.assertIn(self.search.entries['q1'], result)
+
+    def test_query_no_prefix(self):
+        """Results can't be retrieved with substrings that aren't prefixes."""
+        self.search.add("question q1 0.3 This is a question.")
+        self.search.add("user u1 0.3 Blargh Blarghson")
+
+        result = self.search.query("10 uest")
+        self.assertEqual(len(result), 0)
+
+        result = self.search.query("10 tion")
+        self.assertEqual(len(result), 0)
 
 if __name__ == '__main__':
     unittest.main()
