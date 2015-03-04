@@ -2,7 +2,7 @@ import unittest
 from search import TypeAheadSearchSession
 
 
-class TestTypeAheadSearch(unittest.TestCase):
+class TestTypeAheadSearchSession(unittest.TestCase):
     """Test the TypeAheadSearchSession class."""
 
     def setUp(self):
