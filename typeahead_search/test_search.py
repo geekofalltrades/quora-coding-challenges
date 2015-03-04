@@ -65,6 +65,12 @@ class TestTypeAheadSearchSession(unittest.TestCase):
             for s in ("phnglui", "mglwnafh", "rlyeh", "wgahnagl"))
         )
 
+    def test_add_no_punctuation_blobs(self):
+        """Words that are blobs of punctuation aren't added to the Trie."""
+        self.search.add("question q1 0.3 What the #@&%, man?")
+        for s in set('#@&%,'[i:j] for i in range(5) for j in range(i, 6)):
+            self.assertNotIn(s, self.search.trie)
+
     def test_delete(self):
         """Deleting removes elements from entries and the Trie."""
         # Repeat so we have some minimal confidence that the WeakSet

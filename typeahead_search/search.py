@@ -43,7 +43,13 @@ class TypeAheadSearchSession(object):
         for word in new_entry.data.lower().split():
             # Attempt to strip punctuation off of each word before storing
             # it as a search token.
-            self.trie.add(word.strip(string.punctuation), new_entry)
+            word = word.strip(string.punctuation)
+
+            # If the word was just a blob of punctuation, don't store it.
+            if not word:
+                continue
+
+            self.trie.add(word, new_entry)
 
     def delete(self, command):
         """Delete an item."""
