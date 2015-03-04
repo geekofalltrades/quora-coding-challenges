@@ -68,7 +68,7 @@ class TypeAheadSearchSession(object):
 
         # Intersect the results sets for the remaining search words into
         # the first results set.
-        for word in search_words.strip(string.punctuation).lower():
+        for word in search_words:
             results &= self.trie.search(
                 word.strip(string.punctuation).lower()
             )
