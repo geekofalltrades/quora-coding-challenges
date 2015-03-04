@@ -1,6 +1,5 @@
 import unittest
-from trie import TypeAheadSearchTrie
-from search import Entry
+from search import Entry, TypeAheadSearchTrie
 
 
 class TestTrie(unittest.TestCase):
