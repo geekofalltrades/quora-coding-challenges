@@ -55,32 +55,49 @@ class TypeAheadSearchSession(object):
         """Delete an item."""
         del self.entries[command]
 
-    def query(self, command):
-        """Perform a search."""
-        num_results, search_words = command.split(None, 1)
-        num_results = int(num_results)
-        search_words = search_words.split()
-
+    def _query_base(self, *search_words):
+        """The portion of prefix search common to both query and wquery."""
         # Get the results set for one of the search words.
         results = self.trie.search(
-            search_words.pop().strip(string.punctuation).lower()
+            search_words[0].strip(string.punctuation).lower()
         )
 
         # Intersect the results sets for the remaining search words into
         # the first results set.
-        for word in search_words:
+        for word in search_words[1:]:
             results &= self.trie.search(
                 word.strip(string.punctuation).lower()
             )
 
+        return results
+
+    def query(self, command):
+        """Perform a search."""
+        num_results, search_words = command.split(None, 1)
+        num_results = int(num_results)
+
         return sorted(
-            results,
+            self._query_base(*search_words.split()),
             key=lambda e: e.score,
             reverse=True
         )[:num_results]
 
     def wquery(self, command):
         """Perform a weighted search."""
+        num_results, num_boosts, search_words = command.split(None, 2)
+        num_results, num_boosts = int(num_results), int(num_boosts)
+
+        boosts = {}
+        for i in range(num_boosts):
+            boost, search_words = search_words.split(None, 1)
+            key, value = boost.split(':')
+            boosts[key] = float(value)
+
+        return sorted(
+            self._query_base(*search_words.split()),
+            key=lambda e: e.score * boosts.get(e.type, 1) * boosts.get(e.id, 1),
+            reverse=True
+        )[:num_results]
 
 
 def main(session=None):
