@@ -2,8 +2,8 @@ import unittest
 from search import TypeAheadSearchSession
 
 
-class TestTypeAheadSearchSession(unittest.TestCase):
-    """Test the TypeAheadSearchSession class."""
+class TestAddDeleteCommands(unittest.TestCase):
+    """Test the add and delete methods of the search session class."""
 
     def setUp(self):
         self.search = TypeAheadSearchSession()
@@ -89,34 +89,82 @@ class TestTypeAheadSearchSession(unittest.TestCase):
             )
             self.assertNotIn('q1', self.search.entries)
 
-    def test_query_single_whole_term(self):
-        """Retrieve an entry by searching a whole term."""
+
+class TestQueryCommand(unittest.TestCase):
+    """Test the query method of the search session class."""
+
+    def setUp(self):
+        self.search = TypeAheadSearchSession()
         self.search.add("question q1 0.3 This is a question.")
         self.search.add("user u1 0.3 Blargh Blarghson")
 
+    def test_query_single_whole_term(self):
+        """Retrieve an entry by searching a whole term."""
         result = self.search.query("10 question")
         self.assertEqual(len(result), 1)
         self.assertIn(self.search.entries['q1'], result)
 
     def test_query_single_prefix(self):
         """Retrieve an entry with a prefix of one of its search tokens."""
-        self.search.add("question q1 0.3 This is a question.")
-        self.search.add("user u1 0.3 Blargh Blarghson")
-
         result = self.search.query("10 ques")
         self.assertEqual(len(result), 1)
         self.assertIn(self.search.entries['q1'], result)
 
     def test_query_no_prefix(self):
         """Results can't be retrieved with substrings that aren't prefixes."""
-        self.search.add("question q1 0.3 This is a question.")
-        self.search.add("user u1 0.3 Blargh Blarghson")
-
         result = self.search.query("10 uest")
         self.assertEqual(len(result), 0)
 
         result = self.search.query("10 tion")
         self.assertEqual(len(result), 0)
+
+    def test_query_multiple_terms(self):
+        """Retrieve an entry by searching multiple terms."""
+        result = self.search.query("10 this question")
+        self.assertEqual(len(result), 1)
+        self.assertIn(self.search.entries['q1'], result)
+
+    def test_query_multiple_prefixes(self):
+        """Retrieve an entry by searching multiple prefixes."""
+        result = self.search.query("10 thi ques")
+        self.assertEqual(len(result), 1)
+        self.assertIn(self.search.entries['q1'], result)
+
+    def test_query_mixed_term_and_prefix(self):
+        """Retrieve an entry by searching both full terms and prefixes."""
+        result = self.search.query("10 this is ques")
+        self.assertEqual(len(result), 1)
+        self.assertIn(self.search.entries['q1'], result)
+
+    def test_query_non_prefix(self):
+        """Results can't be retrieved when one search term isn't a prefix."""
+        result = self.search.query("10 this uest")
+        self.assertEqual(len(result), 0)
+
+    def test_query_retrieve_multiple_results(self):
+        """Retrieve multiple results, in the correct order."""
+        self.search.add("question q2 0.5 This is another question.")
+        self.search.add("question q3 0.4 This is a third question.")
+        result = self.search.query("10 question")
+        self.assertEqual(len(result), 3)
+        self.assertIs(result[0], self.search.entries['q2'])
+        self.assertIs(result[1], self.search.entries['q3'])
+        self.assertIs(result[2], self.search.entries['q1'])
+
+    def test_query_limit_result_count(self):
+        """Limit the number of results retrieved."""
+        self.search.add("question q2 0.5 This is another question.")
+        self.search.add("question q3 0.4 This is a third question.")
+
+        result = self.search.query("1 question")
+        self.assertEqual(len(result), 1)
+        self.assertIs(result[0], self.search.entries['q2'])
+
+        result = self.search.query("2 question")
+        self.assertEqual(len(result), 2)
+        self.assertIs(result[0], self.search.entries['q2'])
+        self.assertIs(result[1], self.search.entries['q3'])
+
 
 if __name__ == '__main__':
     unittest.main()
