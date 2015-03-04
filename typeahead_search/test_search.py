@@ -65,5 +65,23 @@ class TestTypeAheadSearch(unittest.TestCase):
             for s in ("phnglui", "mglwnafh", "rlyeh", "wgahnagl"))
         )
 
+    def test_delete(self):
+        """Deleting removes elements from entries and the Trie."""
+        # Repeat so we have some minimal confidence that the WeakSet
+        # at each Trie node is dropping entries in a timely fashion.
+        for i in range(100):
+            self.search.add('question q1 0.3 How do I door?')
+            self.assertTrue(all(
+                s in self.search.trie
+                for s in ('how', 'do', 'i', 'door'))
+            )
+            self.assertIn('q1', self.search.entries)
+            self.search.delete('q1')
+            self.assertFalse(any(
+                s in self.search.trie
+                for s in ('how', 'do', 'i', 'door'))
+            )
+            self.assertNotIn('q1', self.search.entries)
+
 if __name__ == '__main__':
     unittest.main()
