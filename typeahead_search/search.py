@@ -26,9 +26,9 @@ class TypeAheadSearchSession(object):
         elif command.startswith('DEL '):
             self.delete(command[4:])
         elif command.startswith('QUERY '):
-            self.query(command[6:])
+            return self.query(command[6:])
         elif command.startswith('WQUERY '):
-            self.wquery(command[7:])
+            return self.wquery(command[7:])
         else:
             raise ValueError(
                 "Command \"{}\" is not of type ADD, DEL, QUERY,"
@@ -109,12 +109,14 @@ def main(session=None):
         session = TypeAheadSearchSession()
 
     # Get the number of expected commands.
-    num_commands = sys.stdin.readline().strip()
+    num_commands = int(sys.stdin.readline().strip())
 
     # Fetch each command from the input.
     for i in range(num_commands):
         command = sys.stdin.readline().strip()
-        session.run_command(command)
+        results = session.run_command(command)
+        if results is not None:
+            print ' '.join(result.id for result in results)
 
 
 if __name__ == '__main__':
