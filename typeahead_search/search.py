@@ -73,7 +73,11 @@ class TypeAheadSearchSession(object):
                 word.strip(string.punctuation).lower()
             )
 
-        return sorted(results, key=lambda e: e.score)[:num_results]
+        return sorted(
+            results,
+            key=lambda e: e.score,
+            reverse=True
+        )[:num_results]
 
     def wquery(self, command):
         """Perform a weighted search."""
