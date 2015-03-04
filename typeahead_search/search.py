@@ -91,7 +91,10 @@ class TypeAheadSearchSession(object):
         for i in range(num_boosts):
             boost, search_words = search_words.split(None, 1)
             key, value = boost.split(':')
-            boosts[key] = float(value)
+            if key in boosts:
+                boosts[key] *= float(value)
+            else:
+                boosts[key] = float(value)
 
         return sorted(
             self._query_base(*search_words.split()),
