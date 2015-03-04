@@ -166,5 +166,71 @@ class TestQueryCommand(unittest.TestCase):
         self.assertIs(result[1], self.search.entries['q3'])
 
 
+class TestWqueryCommand(unittest.TestCase):
+    """Test the wquery method of the search session class."""
+
+    def setUp(self):
+        self.search = TypeAheadSearchSession()
+        self.search.add("question q1 0.3 This is a question.")
+        self.search.add("question q2 0.6 This is another question.")
+        self.search.add("question q3 0.4 This is a third question.")
+        self.search.add("user u1 0.5 Question Questionson")
+
+    def test_no_boosts(self):
+        """Wquery is effectively a query when no boosts are applied."""
+        self.assertEqual(
+            self.search.query("3 question"),
+            self.search.wquery("3 0 question")
+        )
+
+    def test_no_boosts_multiple_terms(self):
+        """Wquery works with no boosts and multiple search terms."""
+        self.assertEqual(
+            self.search.query("3 this question"),
+            self.search.wquery("3 0 this question")
+        )
+
+    def test_boost_type(self):
+        """Boosting a type modifies the order of results."""
+        result = self.search.wquery("2 1 user:2.0 question")
+        self.assertEqual(self.search.entries['u1'], result[0])
+        self.assertEqual(self.search.entries['q2'], result[1])
+
+    def test_boost_type_multiple_times(self):
+        """Boosting a type more than once multiplies the boosts."""
+        # These boosts undo each other.
+        result = self.search.wquery("2 2 user:2.0 user:0.5 question")
+        self.assertEqual(self.search.entries['q2'], result[0])
+        self.assertEqual(self.search.entries['u1'], result[1])
+
+    def test_boost_id(self):
+        """Boosting an id modifies the order of results."""
+        result = self.search.wquery("2 1 u1:2.0 question")
+        self.assertEqual(self.search.entries['u1'], result[0])
+        self.assertEqual(self.search.entries['q2'], result[1])
+
+    def test_boost_id_multiple_times(self):
+        """Boosting an id more than once multiplies the boosts."""
+        # These boosts undo each other.
+        result = self.search.wquery("2 2 u1:2.0 u1:0.5 question")
+        self.assertEqual(self.search.entries['q2'], result[0])
+        self.assertEqual(self.search.entries['u1'], result[1])
+
+    def test_boost_id_and_type(self):
+        """Boosts of type and id are multiplied."""
+        result = self.search.wquery(
+            "2 3 question:2.0 user:2.0 u1:2.0 question"
+        )
+        self.assertEqual(self.search.entries['u1'], result[0])
+        self.assertEqual(self.search.entries['q2'], result[1])
+
+    def test_multiple_boosts_and_terms(self):
+        """Wquery works with multiple boosts and search terms."""
+        result = self.search.wquery(
+            "2 2 question:2.0 q3:2.0 this question"
+        )
+        self.assertEqual(self.search.entries['q3'], result[0])
+        self.assertEqual(self.search.entries['q2'], result[1])
+
 if __name__ == '__main__':
     unittest.main()
