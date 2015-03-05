@@ -44,6 +44,19 @@ class TypeAheadSearchTrie(object):
 
         return self.entries
 
+    def delete(self, word, entry):
+        """Deletes the given data entry from the given Trie word.
+        The word is removed if it becomes empty.
+        """
+        self.entries.discard(entry)
+        if not self.entries:
+            return True
+        elif word:
+            if self.children[word[0]].delete(word[1:], entry):
+                del self.children[word[0]]
+
+        return False
+
     def search(self, word):
         """Return a set of all data entries represented by prefix `word`.
         Returns an empty set if this prefix is not in the Trie.
