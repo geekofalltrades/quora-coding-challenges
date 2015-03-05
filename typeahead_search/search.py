@@ -1,6 +1,5 @@
 import sys
 import string
-from weakref import WeakSet
 
 
 class TypeAheadSearchTrie(object):
@@ -14,10 +13,9 @@ class TypeAheadSearchTrie(object):
         # important, these are stored in a dictionary.
         self.children = {}
 
-        # Data entries associated with the word stored in the path to
-        # this node. Stored in a WeakSet so that entries disappear
-        # automatically when data entries are deleted.
-        self.entries = WeakSet()
+        # Data entries associated with the prefix stored in the path to
+        # this node.
+        self.entries = set()
 
     def __contains__(self, word):
         if word:
@@ -34,13 +32,17 @@ class TypeAheadSearchTrie(object):
         The word is created in the Trie if it doesn't already exist.
         """
         if word:
-            self.children.setdefault(
-                word[0],
-                TypeAheadSearchTrie()
-            ).add(word[1:], entry)
+            self.entries.update(
+                self.children.setdefault(
+                    word[0],
+                    TypeAheadSearchTrie()
+                ).add(word[1:], entry)
+            )
 
         else:
             self.entries.add(entry)
+
+        return self.entries
 
     def search(self, word):
         """Return a set of all data entries represented by prefix `word`.
@@ -53,7 +55,7 @@ class TypeAheadSearchTrie(object):
                 return set()
 
         else:
-            return self.gather_entries()
+            return self.entries
 
     def gather_entries(self):
         """Gather all data entries stored in this node and its children."""
