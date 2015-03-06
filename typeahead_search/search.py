@@ -67,13 +67,6 @@ class TypeAheadSearchTrie(object):
         else:
             return self.entries
 
-    def gather_entries(self):
-        """Gather all data entries stored in this node and its children."""
-        entries = set(self.entries)
-        for child in self.children.itervalues():
-            entries.update(child.gather_entries())
-        return entries
-
 
 class TypeAheadSearchSession(object):
     """Class encapsulating a typeahead search session."""
