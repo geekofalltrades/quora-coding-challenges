@@ -142,7 +142,7 @@ class TypeAheadSearchSession(object):
 
         return sorted(
             self._query_base(*search_words.split()),
-            key=lambda e: e.score,
+            key=lambda e: e[2],
             reverse=True
         )[:num_results]
 
@@ -162,7 +162,7 @@ class TypeAheadSearchSession(object):
 
         return sorted(
             self._query_base(*search_words.split()),
-            key=lambda e: e.score * boosts.get(e.type, 1) * boosts.get(e.id, 1),
+            key=lambda e: e[2] * boosts.get(e[0], 1) * boosts.get(e[1], 1),
             reverse=True
         )[:num_results]
 
@@ -180,7 +180,7 @@ def main(session=None):
         command = sys.stdin.readline().strip()
         results = session.run_command(command)
         if results is not None:
-            print ' '.join(result.id for result in results)
+            print ' '.join(result[1] for result in results)
 
 
 if __name__ == '__main__':
