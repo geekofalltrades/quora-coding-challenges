@@ -1,6 +1,5 @@
 import sys
 import string
-from collections import Counter
 from operator import itemgetter
 
 
@@ -88,7 +87,7 @@ class TypeAheadSearchSession(object):
     def __init__(self):
         self.trie = TypeAheadSearchTrie()
         self.entries = {}
-        self.added_at = Counter()
+        self.added = 0
 
     def run_command(self, command):
         """Validate and execute a search command."""
@@ -110,8 +109,8 @@ class TypeAheadSearchSession(object):
     def add(self, command):
         """Add a new item."""
         type, id, score, data = command.split(None, 3)
-        self.added_at[type] += 1
-        new_entry = (type, id, float(score), data, self.added_at[type])
+        self.added += 1
+        new_entry = (type, id, float(score), data, self.added)
         self.entries[id] = new_entry
 
         for word in data.lower().split():
