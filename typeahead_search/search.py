@@ -18,6 +18,9 @@ class TypeAheadSearchTrie(object):
         self.entries = set()
 
     def __contains__(self, word):
+        """Determines whether words (not entries) are stored in the Trie.
+        For use in testing.
+        """
         if word:
             try:
                 return self.children[word[0]].__contains__(word[1:])
@@ -45,9 +48,18 @@ class TypeAheadSearchTrie(object):
         """Deletes the given data entry from the given Trie word.
         The word is removed if it becomes empty.
         """
+        # Discard the entry, if it hasn't already been discarded.
         self.entries.discard(entry)
+
+        # If we have no entries left, return True, signalling to our
+        # caller that we should be deleted.
         if not self.entries:
             return True
+
+        # If we still have entries, there's still postfix left to search,
+        # and this prefix path wasn't already deleted, pass on the remaining
+        # postfix to the appropriate child node. Delete it if it tells us
+        # it's empty.
         elif word and word[0] in self.children:
             if self.children[word[0]].delete(word[1:], entry):
                 del self.children[word[0]]
@@ -77,14 +89,15 @@ class TypeAheadSearchSession(object):
 
     def run_command(self, command):
         """Validate and execute a search command."""
-        if command.startswith('ADD '):
-            self.add(command[4:])
-        elif command.startswith('DEL '):
-            self.delete(command[4:])
-        elif command.startswith('QUERY '):
-            return self.query(command[6:])
-        elif command.startswith('WQUERY '):
-            return self.wquery(command[7:])
+        command_type, command = command.split(None, 1)
+        if command_type == 'ADD':
+            self.add(command)
+        elif command_type == 'DEL':
+            self.delete(command)
+        elif command_type == 'QUERY':
+            return self.query(command)
+        elif command_type == 'WQUERY':
+            return self.wquery(command)
         else:
             raise ValueError(
                 "Command \"{}\" is not of type ADD, DEL, QUERY,"
