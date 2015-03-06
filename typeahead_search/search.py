@@ -140,7 +140,7 @@ class TypeAheadSearchSession(object):
         # Get the results set for one of the search words.
         results = self.trie.search(
             search_words[0].strip(string.punctuation).lower()
-        )
+        ).copy()
 
         # Intersect the results sets for the remaining search words into
         # the first results set.
