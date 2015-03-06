@@ -25,7 +25,7 @@ class TypeAheadSearchTrie(object):
                 return False
 
         else:
-            return any(
+            return not self.children or any(
                 self.entries - child.entries
                 for child in self.children.values()
             )
