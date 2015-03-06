@@ -78,15 +78,6 @@ class TypeAheadSearchTrie(object):
         return entries
 
 
-class Entry(object):
-    """Simple container class for data entries."""
-    def __init__(self, type, id, score, data):
-        self.type = type
-        self.id = id
-        self.score = float(score)
-        self.data = data
-
-
 class TypeAheadSearchSession(object):
     """Class encapsulating a typeahead search session."""
 
@@ -112,10 +103,11 @@ class TypeAheadSearchSession(object):
 
     def add(self, command):
         """Add a new item."""
-        new_entry = Entry(*command.split(None, 3))
-        self.entries[new_entry.id] = new_entry
+        type, id, score, data = command.split(None, 3)
+        new_entry = (type, id, float(score), data)
+        self.entries[id] = new_entry
 
-        for word in new_entry.data.lower().split():
+        for word in data.lower().split():
             # Attempt to strip punctuation off of each word before storing
             # it as a search token.
             word = word.strip(string.punctuation)
@@ -128,6 +120,13 @@ class TypeAheadSearchSession(object):
 
     def delete(self, command):
         """Delete an item."""
+        for word in self.entries[command][3].lower().split():
+            word = word.strip(string.punctuation)
+            if not word:
+                continue
+
+            self.trie.delete(word, self.entries[command])
+
         del self.entries[command]
 
     def _query_base(self, *search_words):
