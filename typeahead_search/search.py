@@ -25,24 +25,21 @@ class TypeAheadSearchTrie(object):
                 return False
 
         else:
-            return bool(self.entries)
+            return any(
+                self.entries - child.entries
+                for child in self.children.values()
+            )
 
     def add(self, word, entry):
         """Adds the given data entry to the given Trie word.
         The word is created in the Trie if it doesn't already exist.
         """
+        self.entries.add(entry)
         if word:
-            self.entries.update(
-                self.children.setdefault(
-                    word[0],
-                    TypeAheadSearchTrie()
-                ).add(word[1:], entry)
-            )
-
-        else:
-            self.entries.add(entry)
-
-        return self.entries
+            self.children.setdefault(
+                word[0],
+                TypeAheadSearchTrie()
+            ).add(word[1:], entry)
 
     def delete(self, word, entry):
         """Deletes the given data entry from the given Trie word.
