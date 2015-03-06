@@ -48,7 +48,7 @@ class TypeAheadSearchTrie(object):
         self.entries.discard(entry)
         if not self.entries:
             return True
-        elif word:
+        elif word and word[0] in self.children:
             if self.children[word[0]].delete(word[1:], entry):
                 del self.children[word[0]]
 
