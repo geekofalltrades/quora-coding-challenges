@@ -1,13 +1,13 @@
 import unittest
-from search import Entry, TypeAheadSearchTrie
+from search import TypeAheadSearchTrie
 
 
 class TestTrie(unittest.TestCase):
     def setUp(self):
         self.trie = TypeAheadSearchTrie()
         self.entries = [
-            Entry('user', 'u1', 0, 'Some user'),
-            Entry('topic', 't1', 0, 'Some topic'),
+            ('user', 'u1', 0, 'Some user'),
+            ('topic', 't1', 0, 'Some topic'),
         ]
 
     def test_contains(self):
@@ -35,22 +35,26 @@ class TestTrie(unittest.TestCase):
         node = self.trie
         self.assertEqual(len(node.children), 1)
         self.assertIn('s', node.children)
-        self.assertEqual(len(node.entries), 0)
+        self.assertEqual(len(node.entries), 1)
+        self.assertIn(self.entries[0], node.entries)
 
         node = node.children['s']
         self.assertEqual(len(node.children), 1)
         self.assertIn('o', node.children)
-        self.assertEqual(len(node.entries), 0)
+        self.assertEqual(len(node.entries), 1)
+        self.assertIn(self.entries[0], node.entries)
 
         node = node.children['o']
         self.assertEqual(len(node.children), 1)
         self.assertIn('m', node.children)
-        self.assertEqual(len(node.entries), 0)
+        self.assertEqual(len(node.entries), 1)
+        self.assertIn(self.entries[0], node.entries)
 
         node = node.children['m']
         self.assertEqual(len(node.children), 1)
         self.assertIn('e', node.children)
-        self.assertEqual(len(node.entries), 0)
+        self.assertEqual(len(node.entries), 1)
+        self.assertIn(self.entries[0], node.entries)
 
         node = node.children['e']
         self.assertEqual(len(node.children), 0)
@@ -66,22 +70,27 @@ class TestTrie(unittest.TestCase):
         self.assertEqual(len(node.children), 2)
         self.assertIn('s', node.children)
         self.assertIn('d', node.children)
-        self.assertEqual(len(node.entries), 0)
+        self.assertEqual(len(node.entries), 2)
+        self.assertIn(self.entries[0], node.entries)
+        self.assertIn(self.entries[1], node.entries)
 
         node = node.children['s']
         self.assertEqual(len(node.children), 1)
         self.assertIn('o', node.children)
-        self.assertEqual(len(node.entries), 0)
+        self.assertEqual(len(node.entries), 1)
+        self.assertIn(self.entries[0], node.entries)
 
         node = node.children['o']
         self.assertEqual(len(node.children), 1)
         self.assertIn('m', node.children)
-        self.assertEqual(len(node.entries), 0)
+        self.assertEqual(len(node.entries), 1)
+        self.assertIn(self.entries[0], node.entries)
 
         node = node.children['m']
         self.assertEqual(len(node.children), 1)
         self.assertIn('e', node.children)
-        self.assertEqual(len(node.entries), 0)
+        self.assertEqual(len(node.entries), 1)
+        self.assertIn(self.entries[0], node.entries)
 
         node = node.children['e']
         self.assertEqual(len(node.children), 0)
@@ -91,12 +100,14 @@ class TestTrie(unittest.TestCase):
         node = self.trie.children['d']
         self.assertEqual(len(node.children), 1)
         self.assertIn('a', node.children)
-        self.assertEqual(len(node.entries), 0)
+        self.assertEqual(len(node.entries), 1)
+        self.assertIn(self.entries[1], node.entries)
 
         node = node.children['a']
         self.assertEqual(len(node.children), 1)
         self.assertIn('y', node.children)
-        self.assertEqual(len(node.entries), 0)
+        self.assertEqual(len(node.entries), 1)
+        self.assertIn(self.entries[1], node.entries)
 
         node = node.children['y']
         self.assertEqual(len(node.children), 0)
@@ -111,53 +122,71 @@ class TestTrie(unittest.TestCase):
         node = self.trie
         self.assertEqual(len(node.children), 1)
         self.assertIn('s', node.children)
-        self.assertEqual(len(node.entries), 0)
+        self.assertEqual(len(node.entries), 2)
+        self.assertIn(self.entries[0], node.entries)
+        self.assertIn(self.entries[1], node.entries)
 
         node = node.children['s']
         self.assertEqual(len(node.children), 1)
         self.assertIn('o', node.children)
-        self.assertEqual(len(node.entries), 0)
+        self.assertEqual(len(node.entries), 2)
+        self.assertIn(self.entries[0], node.entries)
+        self.assertIn(self.entries[1], node.entries)
 
         node = node.children['o']
         self.assertEqual(len(node.children), 1)
         self.assertIn('m', node.children)
-        self.assertEqual(len(node.entries), 0)
+        self.assertEqual(len(node.entries), 2)
+        self.assertIn(self.entries[0], node.entries)
+        self.assertIn(self.entries[1], node.entries)
 
         node = node.children['m']
         self.assertEqual(len(node.children), 1)
         self.assertIn('e', node.children)
-        self.assertEqual(len(node.entries), 0)
+        self.assertEqual(len(node.entries), 2)
+        self.assertIn(self.entries[0], node.entries)
+        self.assertIn(self.entries[1], node.entries)
 
         node = node.children['e']
         self.assertEqual(len(node.children), 2)
         self.assertIn('d', node.children)
         self.assertIn('b', node.children)
-        self.assertEqual(len(node.entries), 0)
+        self.assertEqual(len(node.entries), 2)
+        self.assertIn(self.entries[0], node.entries)
+        self.assertIn(self.entries[1], node.entries)
 
     def test_two_entries_same_word(self):
-        """Add two words to the same entry."""
+        """Add two entries to the same word."""
         self.trie.add('some', self.entries[0])
         self.trie.add('some', self.entries[1])
 
         node = self.trie
         self.assertEqual(len(node.children), 1)
         self.assertIn('s', node.children)
-        self.assertEqual(len(node.entries), 0)
+        self.assertEqual(len(node.entries), 2)
+        self.assertIn(self.entries[0], node.entries)
+        self.assertIn(self.entries[1], node.entries)
 
         node = node.children['s']
         self.assertEqual(len(node.children), 1)
         self.assertIn('o', node.children)
-        self.assertEqual(len(node.entries), 0)
+        self.assertEqual(len(node.entries), 2)
+        self.assertIn(self.entries[0], node.entries)
+        self.assertIn(self.entries[1], node.entries)
 
         node = node.children['o']
         self.assertEqual(len(node.children), 1)
         self.assertIn('m', node.children)
-        self.assertEqual(len(node.entries), 0)
+        self.assertEqual(len(node.entries), 2)
+        self.assertIn(self.entries[0], node.entries)
+        self.assertIn(self.entries[1], node.entries)
 
         node = node.children['m']
         self.assertEqual(len(node.children), 1)
         self.assertIn('e', node.children)
-        self.assertEqual(len(node.entries), 0)
+        self.assertEqual(len(node.entries), 2)
+        self.assertIn(self.entries[0], node.entries)
+        self.assertIn(self.entries[1], node.entries)
 
         node = node.children['e']
         self.assertEqual(len(node.children), 0)
