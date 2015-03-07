@@ -70,7 +70,7 @@ class TypeAheadRadixTrie(object):
             self.children[word].add('', id)
 
     def delete(self, word, id):
-        """Deletes the given data entry id from the given Trie word.
+        """Deletes the given data entry id from the given Radix Trie word.
         The word is removed if it becomes empty.
         """
         # Discard the entry, if it hasn't already been discarded.
@@ -81,13 +81,15 @@ class TypeAheadRadixTrie(object):
         if not self.entries:
             return True
 
-        # If we still have entries, there's still postfix left to search,
-        # and this prefix path wasn't already deleted, pass on the remaining
-        # postfix to the appropriate child node. Delete it if it tells us
-        # it's empty.
-        elif word and word[0] in self.children:
-            if self.children[word[0]].delete(word[1:], id):
-                del self.children[word[0]]
+        # If we still have entries and there's still postfix left to search,
+        # pass on the remaining postfix to the appropriate child node, if any.
+        # Delete the child node if it tells us it's empty.
+        elif word:
+            for path in self.children:
+                if word.startswith(path):
+                    if self.children[path].delete(word[len(path):], id):
+                        del self.children[path]
+                    break
 
         return False
 
