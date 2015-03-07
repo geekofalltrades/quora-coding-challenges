@@ -26,16 +26,13 @@ class TypeAheadRadixTrie(object):
         For use in testing.
         """
         if word:
-            try:
-                return self.children[word[0]].__contains__(word[1:])
-            except KeyError:
+            for path in self.children:
+                if word.startswith(path):
+                    return self.children[path].__contains__(word[len(path):])
+            else:
                 return False
-
         else:
-            return not self.children or any(
-                self.entries - child.entries
-                for child in self.children.values()
-            )
+            return True
 
     def add(self, word, id):
         """Adds the given data entry id to the given Radix Trie word.
