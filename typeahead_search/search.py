@@ -98,11 +98,11 @@ class TypeAheadRadixTrie(object):
         Returns an empty set if this prefix is not in the Trie.
         """
         if word:
-            try:
-                return self.children[word[0]].search(word[1:])
-            except KeyError:
+            for path in self.children:
+                if word.startswith(path):
+                    return self.children[path].search(word[len(path):])
+            else:
                 return set()
-
         else:
             return self.entries
 
