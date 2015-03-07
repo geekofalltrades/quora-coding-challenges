@@ -34,23 +34,23 @@ class TypeAheadSearchTrie(object):
                 for child in self.children.values()
             )
 
-    def add(self, word, entry):
-        """Adds the given data entry to the given Trie word.
+    def add(self, word, id):
+        """Adds the given data entry id to the given Trie word.
         The word is created in the Trie if it doesn't already exist.
         """
-        self.entries.add(entry)
+        self.entries.add(id)
         if word:
             self.children.setdefault(
                 word[0],
                 TypeAheadSearchTrie()
-            ).add(word[1:], entry)
+            ).add(word[1:], id)
 
-    def delete(self, word, entry):
-        """Deletes the given data entry from the given Trie word.
+    def delete(self, word, id):
+        """Deletes the given data entry id from the given Trie word.
         The word is removed if it becomes empty.
         """
         # Discard the entry, if it hasn't already been discarded.
-        self.entries.discard(entry)
+        self.entries.discard(id)
 
         # If we have no entries left, return True, signalling to our
         # caller that we should be deleted.
@@ -62,13 +62,13 @@ class TypeAheadSearchTrie(object):
         # postfix to the appropriate child node. Delete it if it tells us
         # it's empty.
         elif word and word[0] in self.children:
-            if self.children[word[0]].delete(word[1:], entry):
+            if self.children[word[0]].delete(word[1:], id):
                 del self.children[word[0]]
 
         return False
 
     def search(self, word):
-        """Return a set of all data entries represented by prefix `word`.
+        """Return a set of all data entry ids represented by prefix `word`.
         Returns an empty set if this prefix is not in the Trie.
         """
         if word:
