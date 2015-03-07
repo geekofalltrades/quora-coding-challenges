@@ -3,20 +3,23 @@ import string
 from operator import itemgetter
 
 
-class TypeAheadSearchTrie(object):
-    """A Trie (prefix tree) class for use in typeahead search.
+class TypeAheadRadixTrie(object):
+    """A Radix Trie class for use in typeahead search."""
 
-    Every node in the TypeAheadSearchTrie is another TypeAheadSearchTrie
-    instance.
-    """
-    def __init__(self):
+    def __init__(self, entries=None):
+        """Create a new TypeAheadRadixTrie.
+        If entries is a set, copy it to self.entries."""
+
         # The children of this node. Because ordered traversals are not
         # important, these are stored in a dictionary.
         self.children = {}
 
-        # Data entries associated with the prefix stored in the path to
+        # Data entry ids associated with the prefix stored in the path to
         # this node.
-        self.entries = set()
+        if entries:
+            self.entries = entries.copy()
+        else:
+            self.entries = set()
 
     def __contains__(self, word):
         """Determines whether words (not entries) are stored in the Trie.
@@ -35,15 +38,36 @@ class TypeAheadSearchTrie(object):
             )
 
     def add(self, word, id):
-        """Adds the given data entry id to the given Trie word.
-        The word is created in the Trie if it doesn't already exist.
+        """Adds the given data entry id to the given Radix Trie word.
+        The word is created in the Radix Trie if it doesn't already exist.
         """
         self.entries.add(id)
-        if word:
-            self.children.setdefault(
-                word[0],
-                TypeAheadSearchTrie()
-            ).add(word[1:], id)
+
+        # Iterate through paths from this node.
+        for path in self.children:
+            # If we have a path that prefixes this word, follow it.
+            if word.startswith(path):
+                self.children[path].add(word[len(path):], id)
+                break
+
+            # If our word prefixes an existing path, split the path in
+            # two and insert a new node accommodating this word.
+            if path.startswith(word):
+                self.children[word] = TypeAheadRadixTrie(
+                    self.children[path].entries
+                )
+                self.children[word].children[path[len(word):]] = \
+                    self.children[path]
+
+                del self.children[path]
+                self.children[word].add('', id)
+                break
+
+        # If we have no paths prefixing or prefixed by this word, create
+        # a new path representing this word.
+        else:
+            self.children[word] = TypeAheadRadixTrie()
+            self.children[word].add('', id)
 
     def delete(self, word, id):
         """Deletes the given data entry id from the given Trie word.
@@ -85,7 +109,7 @@ class TypeAheadSearchSession(object):
     """Class encapsulating a typeahead search session."""
 
     def __init__(self):
-        self.trie = TypeAheadSearchTrie()
+        self.trie = TypeAheadRadixTrie()
         self.entries = {}
         self.added = 0
 
@@ -137,7 +161,7 @@ class TypeAheadSearchSession(object):
             # only holds one record, and it allows us to short-circuit
             # the rest of our deletions.
             if self.trie.delete(word, id):
-                self.trie = TypeAheadSearchTrie()
+                self.trie = TypeAheadRadixTrie()
                 break
 
         del self.entries[id]
