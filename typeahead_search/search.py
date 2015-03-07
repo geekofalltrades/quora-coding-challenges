@@ -122,18 +122,18 @@ class TypeAheadSearchSession(object):
             if not word:
                 continue
 
-            self.trie.add(word, new_entry)
+            self.trie.add(word, id)
 
-    def delete(self, command):
+    def delete(self, id):
         """Delete an item."""
-        for word in self.entries[command][3].lower().split():
+        for word in self.entries[id][3].lower().split():
             word = word.strip(string.punctuation)
             if not word:
                 continue
 
-            self.trie.delete(word, self.entries[command])
+            self.trie.delete(word, id)
 
-        del self.entries[command]
+        del self.entries[id]
 
     def _query_base(self, *search_words):
         """The portion of prefix search common to both query and wquery."""
@@ -157,7 +157,7 @@ class TypeAheadSearchSession(object):
         num_results = int(num_results)
 
         return sorted(
-            self._query_base(*search_words.split()),
+            (self.entries[id] for id in self._query_base(*search_words.split())),
             key=itemgetter(2, 4),
             reverse=True
         )[:num_results]
@@ -177,7 +177,7 @@ class TypeAheadSearchSession(object):
                 boosts[key] = float(value)
 
         return sorted(
-            self._query_base(*search_words.split()),
+            (self.entries[id] for id in self._query_base(*search_words.split())),
             key=lambda e: (
                 e[2] * boosts.get(e[0], 1) * boosts.get(e[1], 1),
                 e[4]
