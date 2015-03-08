@@ -92,37 +92,32 @@ class TypeAheadRadixTrie(object):
         if not self.root and not self.entries:
             return
 
-        # If we have some postfix left to search.
-        if word:
-            for prefix in (word[:i] for i in range(len(word), 0, -1)):
-                # If we have a path prefixing this word, follow it.
-                if prefix in self.children:
-                    new_path = self.children[prefix].delete(
-                        word[len(prefix):],
-                        id
-                    )
+        # Get the path to the remaining postfix of the word, if any.
+        path, child = self.children.get(word[0], ((), None))
 
-                    # If our child returned a path that it collapsed into
-                    # itself, update our path to that child with the returned
-                    # value.
-                    if new_path:
-                        self.children[prefix + new_path] = self.children[prefix]
+        # If we have a path prefixing this word, follow it.
+        if word.startswith(path):
+            new_path = child.delete(word[len(path):], id)
 
-                        del self.children[prefix]
+            # If our child returned a path that it collapsed into
+            # itself, update our path to that child with the returned
+            # path.
+            if new_path:
+                self.children[word[0]] = (path + new_path, child)
 
-                    # If the node at the end of this path contains no more
-                    # entries, delete it.
-                    elif not self.children[prefix]:
-                        del self.children[prefix]
+            # If the node at the end of this path contains no more
+            # entries, delete it.
+            elif not child:
+                del self.children[word[0]]
 
-        # If only one child now remains, and our set of entries is equal to
-        # that child's set of entries (never true for root), collapse it
-        # into ourself and return the path we collapsed.
-        if len(self.children) == 1 and \
-                self.children.values()[0].entries == self.entries:
-            old_path, child = self.children.popitem()
-            self.children = child.children
-            return old_path
+        # If only one child now remains, and our set of entries is equal
+        # to that child's set of entries (never true for root), collapse
+        # it into ourself and return the path we collapsed.
+        if len(self.children) == 1:
+            old_path, child = self.children.values()[0]
+            if child.entries == self.entries:
+                self.children = child.children
+                return old_path
 
     def search(self, word):
         """Return a set of all data entry ids represented by prefix `word`.
