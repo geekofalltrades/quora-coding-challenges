@@ -116,7 +116,8 @@ class TestRadixTrie(unittest.TestCase):
         """Delete the only entry/word from the Trie."""
         self.trie.add('some', self.ids[0])
         self.trie.delete('some', self.ids[0])
-        self.assertEqual(len(self.trie.children), 0)
+        self.assertEqual(len(self.trie.children), 1)
+        self.assertIn('some', self.trie.children)
         self.assertEqual(len(self.trie.entries), 0)
 
     def test_delete_words_remaining(self):
