@@ -113,8 +113,7 @@ class TypeAheadRadixTrie(object):
                     # itself, update our path to that child with the returned
                     # value.
                     if new_path:
-                        self.children[prefix + new_path] = \
-                            self.children[prefix]
+                        self.children[prefix + new_path] = self.children[prefix]
 
                         del self.children[prefix]
 
