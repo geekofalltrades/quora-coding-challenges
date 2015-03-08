@@ -6,17 +6,22 @@ from operator import itemgetter
 class TypeAheadRadixTrie(object):
     """A Radix Trie class for use in typeahead search."""
 
-    def __init__(self, entries=None):
+    def __init__(self, entries=None, root=True):
         """Create a new TypeAheadRadixTrie.
-        If entries is a set, copy it to self.entries."""
+        If entries is a set, copy it to self.entries.
+        If root is True, we are the root node.
+        """
 
         # The children of this node. Because ordered traversals are not
         # important, these are stored in a dictionary.
         self.children = {}
 
+        # Whether or not this is the root node.
+        self.root = root
+
         # Data entry ids associated with the prefix stored in the path to
         # this node.
-        if entries:
+        if not self.root and entries:
             self.entries = entries.copy()
         else:
             self.entries = set()
@@ -35,14 +40,18 @@ class TypeAheadRadixTrie(object):
             return True
 
     def __nonzero__(self):
-        """Return true if this node contains entries, False otherwise."""
-        return bool(self.entries)
+        """Return true if this node contains entries, False otherwise.
+        The root always evaluates to True.
+        """
+        return self.root or bool(self.entries)
 
     def add(self, word, id):
         """Adds the given data entry id to the given Radix Trie word.
         The word is created in the Radix Trie if it doesn't already exist.
         """
-        self.entries.add(id)
+        # Don't store entries if we are the root.
+        if not self.root:
+            self.entries.add(id)
 
         if word:
             prefixes = tuple(word[:i] for i in range(len(word), 0, -1))
@@ -62,7 +71,8 @@ class TypeAheadRadixTrie(object):
                     # word.
                     if path.startswith(prefix):
                         self.children[prefix] = TypeAheadRadixTrie(
-                            self.children[path].entries
+                            self.children[path].entries,
+                            root=False
                         )
                         self.children[prefix].children[path[len(prefix):]] = \
                             self.children[path]
@@ -73,7 +83,7 @@ class TypeAheadRadixTrie(object):
 
             # If we have no paths prefixing or prefixed by this word, create
             # a new path representing this word.
-            self.children[word] = TypeAheadRadixTrie()
+            self.children[word] = TypeAheadRadixTrie(root=False)
             self.children[word].add('', id)
 
     def delete(self, word, id):
@@ -84,8 +94,9 @@ class TypeAheadRadixTrie(object):
         # Discard the entry, if it hasn't already been discarded.
         self.entries.discard(id)
 
-        # If we have no entries left, short-circuit. Our parent will delete us.
-        if not self.entries:
+        # If we have no entries left, and we are not the root, short-circuit.
+        # Our parent will delete us.
+        if not self.root and not self.entries:
             return
 
         # If we have some postfix left to search.
@@ -112,12 +123,14 @@ class TypeAheadRadixTrie(object):
                     elif not self.children[prefix]:
                         del self.children[prefix]
 
-                        # If only one child now remains, collapse it into
-                        # ourself and return the path we collapsed.
-                        if len(self.children) == 1:
-                            old_path, child = self.children.popitem()
-                            self.children.update(child.children)
-                            return old_path
+        # If only one child now remains, and our set of entries is equal to
+        # that child's set of entries (never true for root), collapse it
+        # into ourself and return the path we collapsed.
+        if len(self.children) == 1 and \
+                self.children.values()[0].entries == self.entries:
+            old_path, child = self.children.popitem()
+            self.children = child.children
+            return old_path
 
     def search(self, word):
         """Return a set of all data entry ids represented by prefix `word`.
