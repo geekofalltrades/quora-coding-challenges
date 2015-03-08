@@ -92,23 +92,25 @@ class TypeAheadRadixTrie(object):
         if not self.root and not self.entries:
             return
 
-        # Get the path to the remaining postfix of the word, if any.
-        path, child = self.children.get(word[0], ((), None))
+        # If we have postfix left to search.
+        if word:
+            # Get the path to the remaining postfix of the word, if any.
+            path, child = self.children.get(word[0], ('', None))
 
-        # If we have a path prefixing this word, follow it.
-        if word.startswith(path):
-            new_path = child.delete(word[len(path):], id)
+            # If we have a path prefixing this word, follow it.
+            if path and word.startswith(path):
+                new_path = child.delete(word[len(path):], id)
 
-            # If our child returned a path that it collapsed into
-            # itself, update our path to that child with the returned
-            # path.
-            if new_path:
-                self.children[word[0]] = (path + new_path, child)
+                # If our child returned a path that it collapsed into
+                # itself, update our path to that child with the returned
+                # path.
+                if new_path:
+                    self.children[word[0]] = (path + new_path, child)
 
-            # If the node at the end of this path contains no more
-            # entries, delete it.
-            elif not child:
-                del self.children[word[0]]
+                # If the node at the end of this path contains no more
+                # entries, delete it.
+                elif not child:
+                    del self.children[word[0]]
 
         # If only one child now remains, and our set of entries is equal
         # to that child's set of entries (never true for root), collapse
