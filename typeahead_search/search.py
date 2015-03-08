@@ -34,6 +34,10 @@ class TypeAheadRadixTrie(object):
         else:
             return True
 
+    def __nonzero__(self):
+        """Return true if this node contains entries, False otherwise."""
+        return bool(self.entries)
+
     def add(self, word, id):
         """Adds the given data entry id to the given Radix Trie word.
         The word is created in the Radix Trie if it doesn't already exist.
@@ -74,27 +78,46 @@ class TypeAheadRadixTrie(object):
 
     def delete(self, word, id):
         """Deletes the given data entry id from the given Radix Trie word.
-        The word is removed if it becomes empty.
+        Postfixes are removed if they become empty.
+        Nodes are collapsed if deletion causes them to represent a single path.
         """
         # Discard the entry, if it hasn't already been discarded.
         self.entries.discard(id)
 
-        # If we have no entries left, return True, signalling to our
-        # caller that we should be deleted.
+        # If we have no entries left, short-circuit. Our parent will delete us.
         if not self.entries:
-            return True
+            return
 
-        # If we still have entries and there's still postfix left to search,
-        # pass on the remaining postfix to the appropriate child node, if any.
-        # Delete the child node if it tells us it's empty.
-        elif word:
-            for path in self.children:
-                if word.startswith(path):
-                    if self.children[path].delete(word[len(path):], id):
-                        del self.children[path]
-                    break
+        # If we have some postfix left to search.
+        if word:
+            for prefix in (word[:i] for i in range(len(word), 0, -1)):
+                # If we have a path prefixing this word, follow it.
+                if prefix in self.children:
+                    new_path = self.children[prefix].delete(
+                        word[len(prefix):],
+                        id
+                    )
 
-        return False
+                    # If our child returned a path that it collapsed into
+                    # itself, update our path to that child with the returned
+                    # value.
+                    if new_path:
+                        self.children[prefix + new_path] = \
+                            self.children[prefix]
+
+                        del self.children[prefix]
+
+                    # If the node at the end of this path contains no more
+                    # entries, delete it.
+                    elif not self.children[prefix]:
+                        del self.children[prefix]
+
+                        # If only one child now remains, collapse it into
+                        # ourself and return the path we collapsed.
+                        if len(self.children) == 1:
+                            old_path, child = self.children.popitem()
+                            self.children.update(child.children)
+                            return old_path
 
     def search(self, word):
         """Return a set of all data entry ids represented by prefix `word`.
