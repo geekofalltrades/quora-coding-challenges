@@ -124,18 +124,17 @@ class TypeAheadRadixTrie(object):
         Returns an empty set if this prefix is not in the Trie.
         """
         if word:
-            # Check whether a path prefixes our word.
-            for prefix, postfix in (
-                (word[:i], word[i:]) for i in range(len(word), 0, -1)
-            ):
-                if prefix in self.children:
-                    return self.children[prefix].search(postfix)
+            # Get the candidate path to the remaining postfix of the
+            # word, if any.
+            path, child = self.children.get(word[0], ('', None))
 
-            # Check whether our word prefixes a path.
-            for path in self.children:
-                if path.startswith(word):
-                    return self.children[path].search('')
+            # If the candidate path prefixes our word or our word prefixes
+            # the candidate path, search from that child using the word
+            # with the path sliced off (empty string if path is longer).
+            if (path and word.startswith(path)) or path.startswith(word):
+                return child.search(word[len(path):])
 
+            # Otherwise, the Radix Trie does not contain this word (prefix).
             return set()
 
         else:
