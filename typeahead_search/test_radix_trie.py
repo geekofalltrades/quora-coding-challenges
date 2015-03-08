@@ -63,6 +63,54 @@ class TestRadixTrie(unittest.TestCase):
         self.assertEqual(len(node.entries), 1)
         self.assertIn(self.ids[1], node.entries)
 
+    def test_add_prefix(self):
+        """Add a word that prefixes another word."""
+        self.trie.add('someday', self.ids[0])
+        self.trie.add('some', self.ids[1])
+
+        node = self.trie
+        self.assertEqual(len(node.children), 1)
+        self.assertIn('some', node.children)
+        self.assertEqual(len(node.entries), 2)
+        for id in self.ids:
+            self.assertIn(id, node.entries)
+
+        node = node.children['some']
+        self.assertEqual(len(node.children), 1)
+        self.assertIn('day', node.children)
+        self.assertEqual(len(node.entries), 2)
+        for id in self.ids:
+            self.assertIn(id, node.entries)
+
+        node = node.children['day']
+        self.assertEqual(len(node.children), 0)
+        self.assertEqual(len(node.entries), 1)
+        self.assertIn(self.ids[0], node.entries)
+
+    def test_add_postfix(self):
+        """Add a word that postfixes another word."""
+        self.trie.add('some', self.ids[0])
+        self.trie.add('someday', self.ids[1])
+
+        node = self.trie
+        self.assertEqual(len(node.children), 1)
+        self.assertIn('some', node.children)
+        self.assertEqual(len(node.entries), 2)
+        for id in self.ids:
+            self.assertIn(id, node.entries)
+
+        node = node.children['some']
+        self.assertEqual(len(node.children), 1)
+        self.assertIn('day', node.children)
+        self.assertEqual(len(node.entries), 2)
+        for id in self.ids:
+            self.assertIn(id, node.entries)
+
+        node = node.children['day']
+        self.assertEqual(len(node.children), 0)
+        self.assertEqual(len(node.entries), 1)
+        self.assertIn(self.ids[1], node.entries)
+
     def test_add_overlapping_word(self):
         """Add two overlapping words to the Trie."""
         self.trie.add('somebody', self.ids[0])
