@@ -30,13 +30,13 @@ class TypeAheadRadixTrie(object):
             self.entries = set()
 
     def __contains__(self, word):
-        """Determines whether words (not entries) are stored in the Trie.
+        """Determines whether words (not entries) are stored in the Radix Trie.
         For use in testing.
         """
         if word:
-            for path in self.children:
-                if word.startswith(path):
-                    return self.children[path].__contains__(word[len(path):])
+            path, child = self.children.get(word[0], ('', None))
+            if path and word.startswith(path):
+                    return child.__contains__(word[len(path):])
             else:
                 return False
         else:
