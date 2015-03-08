@@ -32,8 +32,7 @@ class TestRadixTrie(unittest.TestCase):
         node = self.trie
         self.assertEqual(len(node.children), 1)
         self.assertIn('some', node.children)
-        self.assertEqual(len(node.entries), 1)
-        self.assertIn(self.ids[0], node.entries)
+        self.assertEqual(len(node.entries), 0)
 
         node = node.children['some']
         self.assertEqual(len(node.children), 0)
@@ -49,9 +48,7 @@ class TestRadixTrie(unittest.TestCase):
         self.assertEqual(len(node.children), 2)
         self.assertIn('some', node.children)
         self.assertIn('day', node.children)
-        self.assertEqual(len(node.entries), 2)
-        for id in self.ids:
-            self.assertIn(id, node.entries)
+        self.assertEqual(len(node.entries), 0)
 
         node = self.trie.children['some']
         self.assertEqual(len(node.children), 0)
@@ -71,9 +68,7 @@ class TestRadixTrie(unittest.TestCase):
         node = self.trie
         self.assertEqual(len(node.children), 1)
         self.assertIn('some', node.children)
-        self.assertEqual(len(node.entries), 2)
-        for id in self.ids:
-            self.assertIn(id, node.entries)
+        self.assertEqual(len(node.entries), 0)
 
         node = node.children['some']
         self.assertEqual(len(node.children), 1)
@@ -95,9 +90,7 @@ class TestRadixTrie(unittest.TestCase):
         node = self.trie
         self.assertEqual(len(node.children), 1)
         self.assertIn('some', node.children)
-        self.assertEqual(len(node.entries), 2)
-        for id in self.ids:
-            self.assertIn(id, node.entries)
+        self.assertEqual(len(node.entries), 0)
 
         node = node.children['some']
         self.assertEqual(len(node.children), 1)
@@ -119,9 +112,7 @@ class TestRadixTrie(unittest.TestCase):
         node = self.trie
         self.assertEqual(len(node.children), 1)
         self.assertIn('some', node.children)
-        self.assertEqual(len(node.entries), 2)
-        for id in self.ids:
-            self.assertIn(id, node.entries)
+        self.assertEqual(len(node.entries), 0)
 
         node = node.children['some']
         split_node = node
@@ -150,22 +141,19 @@ class TestRadixTrie(unittest.TestCase):
         node = self.trie
         self.assertEqual(len(node.children), 1)
         self.assertIn('some', node.children)
-        self.assertEqual(len(node.entries), 2)
-        self.assertIn(self.ids[0], node.entries)
-        self.assertIn(self.ids[1], node.entries)
+        self.assertEqual(len(node.entries), 0)
 
         node = node.children['some']
         self.assertEqual(len(node.children), 0)
         self.assertEqual(len(node.entries), 2)
-        self.assertIn(self.ids[0], node.entries)
-        self.assertIn(self.ids[1], node.entries)
+        for id in self.ids:
+            self.assertIn(id, node.entries)
 
     def test_delete_only_word(self):
         """Delete the only entry/word from the Trie."""
         self.trie.add('some', self.ids[0])
         self.trie.delete('some', self.ids[0])
-        self.assertEqual(len(self.trie.children), 1)
-        self.assertIn('some', self.trie.children)
+        self.assertEqual(len(self.trie.children), 0)
         self.assertEqual(len(self.trie.entries), 0)
 
     def test_delete_with_words_remaining(self):
@@ -177,8 +165,7 @@ class TestRadixTrie(unittest.TestCase):
         node = self.trie
         self.assertEqual(len(node.children), 1)
         self.assertIn('day', node.children)
-        self.assertEqual(len(node.entries), 1)
-        self.assertIn(self.ids[1], node.entries)
+        self.assertEqual(len(node.entries), 0)
 
         node = node.children['day']
         self.assertEqual(len(node.children), 0)
@@ -194,8 +181,7 @@ class TestRadixTrie(unittest.TestCase):
         node = self.trie
         self.assertEqual(len(node.children), 1)
         self.assertIn('some', node.children)
-        self.assertEqual(len(node.entries), 1)
-        self.assertIn(self.ids[1], node.entries)
+        self.assertEqual(len(node.entries), 0)
 
         node = node.children['some']
         self.assertEqual(len(node.children), 0)
@@ -211,8 +197,7 @@ class TestRadixTrie(unittest.TestCase):
         node = self.trie
         self.assertEqual(len(node.children), 1)
         self.assertIn('some', node.children)
-        self.assertEqual(len(node.entries), 1)
-        self.assertIn(self.ids[0], node.entries)
+        self.assertEqual(len(node.entries), 0)
 
         node = node.children['some']
         self.assertEqual(len(node.children), 0)
@@ -230,8 +215,7 @@ class TestRadixTrie(unittest.TestCase):
         node = self.trie
         self.assertEqual(len(node.children), 1)
         self.assertIn('somebody', node.children)
-        self.assertEqual(len(node.entries), 1)
-        self.assertIn(self.ids[0], node.entries)
+        self.assertEqual(len(node.entries), 0)
 
         node = node.children['somebody']
         self.assertEqual(len(node.children), 0)
@@ -247,13 +231,12 @@ class TestRadixTrie(unittest.TestCase):
         node = self.trie
         self.assertEqual(len(node.children), 1)
         self.assertIn('someday', node.children)
-        self.assertEqual(len(node.entries), 1)
-        self.assertIn(self.ids[0], node.entries)
+        self.assertEqual(len(node.entries), 0)
 
         node = node.children['someday']
         self.assertEqual(len(node.children), 0)
         self.assertEqual(len(node.entries), 1)
-        self.assertIn(self.ids[0], node.entries)
+        self.assertIn(self.ids[1], node.entries)
 
     def test_single_search(self):
         """Search for an entry at some word."""
