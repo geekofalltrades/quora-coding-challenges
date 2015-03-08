@@ -60,7 +60,7 @@ class TypeAheadRadixTrie(object):
             # word if a candidate path doesn't exist.
             path, child = self.children.setdefault(
                 word[0],
-                (word, TypeAheadRadixTrie())
+                (word, TypeAheadRadixTrie(root=False))
             )
 
             # If the path prefixes the word, pass on the postfix to the child.
@@ -70,7 +70,7 @@ class TypeAheadRadixTrie(object):
             # If the word prefixes the path, split the path in two and
             # insert a new node accommodating this word.
             elif path.startswith(word):
-                new_child = TypeAheadRadixTrie()
+                new_child = TypeAheadRadixTrie(child.entries, root=False)
                 new_child_path = path[len(word):]
                 self.children[word[0]] = (word, new_child)
                 new_child.children[new_child_path[0]] = (
