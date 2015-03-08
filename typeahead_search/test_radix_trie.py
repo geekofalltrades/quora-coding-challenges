@@ -168,7 +168,7 @@ class TestRadixTrie(unittest.TestCase):
         self.assertIn('some', self.trie.children)
         self.assertEqual(len(self.trie.entries), 0)
 
-    def test_delete_words_remaining(self):
+    def test_delete_with_words_remaining(self):
         """Delete an entry from a Trie with multiple words."""
         self.trie.add('some', self.ids[0])
         self.trie.add('day', self.ids[1])
