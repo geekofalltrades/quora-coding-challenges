@@ -14,6 +14,8 @@ class TypeAheadRadixTrie(object):
 
         # The children of this node. Because ordered traversals are not
         # important, these are stored in a dictionary.
+        # Each path is keyed with its first letter, and stores a tuple
+        # of (path, child).
         self.children = {}
 
         # Whether or not this is the root node.
@@ -54,37 +56,28 @@ class TypeAheadRadixTrie(object):
             self.entries.add(id)
 
         if word:
-            prefixes = tuple(word[:i] for i in range(len(word), 0, -1))
+            # Retrieve the candidate path, or create a path for this
+            # word if a candidate path doesn't exist.
+            path, child = self.children.setdefault(
+                word[0],
+                (word, TypeAheadRadixTrie())
+            )
 
-            # Check whether we have a path that prefixes our word.
-            for prefix in prefixes:
-                # If we have a path that prefixes our word, follow it.
-                if prefix in self.children:
-                    self.children[prefix].add(word[len(prefix):], id)
-                    return
+            # If the path prefixes the word, pass on the postfix to the child.
+            if word.startswith(path):
+                child.add(word[len(path):], id)
 
-            # Check whether prefixes of our word prefix an existing path.
-            for path in self.children:
-                for prefix in prefixes:
-                    # If this prefix prefixes an existing path, split the
-                    # path in two and insert a new node accommodating this
-                    # word.
-                    if path.startswith(prefix):
-                        self.children[prefix] = TypeAheadRadixTrie(
-                            self.children[path].entries,
-                            root=False
-                        )
-                        self.children[prefix].children[path[len(prefix):]] = \
-                            self.children[path]
-
-                        del self.children[path]
-                        self.children[prefix].add(word[len(prefix):], id)
-                        return
-
-            # If we have no paths prefixing or prefixed by this word, create
-            # a new path representing this word.
-            self.children[word] = TypeAheadRadixTrie(root=False)
-            self.children[word].add('', id)
+            # If the word prefixes the path, split the path in two and
+            # insert a new node accommodating this word.
+            elif path.startswith(word):
+                new_child = TypeAheadRadixTrie()
+                new_child_path = path[len(word):]
+                self.children[word[0]] = (word, new_child)
+                new_child.children[new_child_path[0]] = (
+                    new_child_path,
+                    child
+                )
+                new_child.add('', id)
 
     def delete(self, word, id):
         """Deletes the given data entry id from the given Radix Trie word.
