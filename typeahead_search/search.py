@@ -1,6 +1,7 @@
 import sys
 import string
 from operator import itemgetter
+from os.path import commonprefix
 
 
 class TypeAheadRadixTrie(object):
@@ -63,21 +64,25 @@ class TypeAheadRadixTrie(object):
                 (word, TypeAheadRadixTrie(root=False))
             )
 
+            # Get the longest prefix the path and the word share.
+            common = commonprefix((word, path))
+
             # If the path prefixes the word, pass on the postfix to the child.
-            if word.startswith(path):
+            if common == path:
                 child.add(word[len(path):], id)
 
-            # If the word prefixes the path, split the path in two and
-            # insert a new node accommodating this word.
-            elif path.startswith(word):
+            # If the word and the path share a prefix, split the path in
+            # two and insert a new node, then add the remainder of this
+            # word from that node.
+            else:
                 new_child = TypeAheadRadixTrie(child.entries, root=False)
-                new_child_path = path[len(word):]
-                self.children[word[0]] = (word, new_child)
+                new_child_path = path[len(common):]
+                self.children[word[0]] = (common, new_child)
                 new_child.children[new_child_path[0]] = (
                     new_child_path,
                     child
                 )
-                new_child.add('', id)
+                new_child.add(word[len(common):], id)
 
     def delete(self, word, id):
         """Deletes the given data entry id from the given Radix Trie word.
