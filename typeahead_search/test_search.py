@@ -13,10 +13,10 @@ class TestAddDeleteCommands(unittest.TestCase):
         self.assertIn('q1', self.search.entries)
 
         entry = self.search.entries['q1']
-        self.assertEqual(entry.type, 'question')
-        self.assertEqual(entry.id, 'q1')
-        self.assertEqual(entry.score, 0.5)
-        self.assertEqual(entry.data, "How do I even?")
+        self.assertEqual(entry[0], 'question')
+        self.assertEqual(entry[1], 'q1')
+        self.assertEqual(entry[2], 0.5)
+        self.assertEqual(entry[3], "How do I even?")
 
         self.assertIn('how', self.search.trie)
         self.assertIn('do', self.search.trie)
@@ -69,7 +69,8 @@ class TestAddDeleteCommands(unittest.TestCase):
         """Words that are blobs of punctuation aren't added to the Trie."""
         self.search.add("question q1 0.3 What the #@&%, man?")
         for s in set('#@&%,'[i:j] for i in range(5) for j in range(i, 6)):
-            self.assertNotIn(s, self.search.trie)
+            if s:
+                self.assertNotIn(s, self.search.trie)
 
     def test_delete(self):
         """Deleting removes elements from entries and the Trie."""
