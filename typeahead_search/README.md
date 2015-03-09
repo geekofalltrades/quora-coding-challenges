@@ -2,8 +2,9 @@
 
 A pure Python implementation of the Typeahead Search challenge.
 
-Additions to this code could be a database for persistence, brokered through
-a Python ORM like SQLAlchemy.
+This implementation uses a Radix Trie to store words. Each node in the
+Radix Trie maintains a complete set of the entries in the subtree rooted
+at itself.
 
-Another interesting note is that this particular challenge is
-well-suited to the Prolog programming language.
+Current runtime for the largest possible datasets is about 16s, and memory
+usage toes 512mb.
