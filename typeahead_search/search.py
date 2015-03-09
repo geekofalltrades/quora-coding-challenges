@@ -198,14 +198,7 @@ class TypeAheadSearchSession(object):
             if not word:
                 continue
 
-            # If the Trie signals that it no longer holds any entries,
-            # allocate a new Trie. This is an edge case that otherwise
-            # leaves behind residual entries in the case where the Trie
-            # only holds one record, and it allows us to short-circuit
-            # the rest of our deletions.
-            if self.trie.delete(word, id):
-                self.trie = TypeAheadRadixTrie()
-                break
+            self.trie.delete(word, id)
 
         del self.entries[id]
 
