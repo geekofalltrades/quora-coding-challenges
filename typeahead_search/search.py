@@ -1,7 +1,6 @@
 import sys
 import string
 from operator import itemgetter
-from os.path import commonprefix
 
 
 class TypeAheadRadixTrie(object):
@@ -64,17 +63,21 @@ class TypeAheadRadixTrie(object):
                 (word, TypeAheadRadixTrie(root=False))
             )
 
-            # Get the longest prefix the path and the word share.
-            common = commonprefix((word, path))
-
             # If the path prefixes the word, pass on the postfix to the child.
-            if common == path:
+            if word.startswith(path):
                 child.add(word[len(path):], id)
 
             # If the word and the path share a prefix, split the path in
             # two and insert a new node, then add the remainder of this
             # word from that node.
             else:
+                common = ''
+                for i in range(len(min(path, word))):
+                    if path[i] == word[i]:
+                        common += path[i]
+                    else:
+                        break
+
                 new_child = TypeAheadRadixTrie(child.entries, root=False)
                 new_child_path = path[len(common):]
                 self.children[word[0]] = (common, new_child)
