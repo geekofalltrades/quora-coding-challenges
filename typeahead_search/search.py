@@ -211,6 +211,17 @@ class TypeAheadSearchSession(object):
 
     def _query_base(self, *search_words):
         """The portion of prefix search common to both query and wquery."""
+
+        # Sort search words lexically and eliminate any words that prefix
+        # other words.
+        search_words = sorted(search_words)
+        i = 0
+        while i < len(search_words) - 1:
+            if search_words[i + 1].startswith(search_words[i]):
+                search_words.pop(i)
+            else:
+                i += 1
+
         # Get the results set for one of the search words.
         results = self.trie.search(
             search_words[0].strip(string.punctuation).lower()
