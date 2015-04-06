@@ -1,4 +1,7 @@
 import sys
+from collections import namedtuple
+
+Story = namedtuple('Story', ['id', 'time', 'score', 'height'])
 
 
 class FeedOptimizerSession(object):
@@ -13,6 +16,7 @@ class FeedOptimizerSession(object):
         # keyed by their browser height; and by their id.
         self.stories_by_bucket = {}
         self.stories_by_id = {}
+        self.current_story_id = 0
 
         # Rules are stored in a list where list index corresponds to
         # browser height for that rule.
@@ -54,6 +58,27 @@ class FeedOptimizerSession(object):
 
     def add_story(self, story_time, story_score, story_height):
         """Add a story."""
+        self.current_story_id += 1
+        new_story = Story(
+            self.current_story_id,
+            story_time,
+            story_score,
+            story_height
+        )
+
+        self.stories_by_id[new_story.id] = new_story
+
+        bucket = self.stories_by_bucket.setdefault(new_story.height, [])
+        i = 0
+        while i < len(bucket):
+            if new_story.score > bucket[i].score:
+                bucket.insert(i, new_story)
+                break
+            i += 1
+        else:
+            bucket.append(new_story)
+
+        # Prune old stories and rebuild dynamic programming rules.
         self.update(story_time)
 
     def refresh(self, refresh_time):
