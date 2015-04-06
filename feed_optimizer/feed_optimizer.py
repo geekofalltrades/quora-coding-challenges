@@ -8,7 +8,14 @@ class FeedOptimizerSession(object):
     def __init__(self, time_window, browser_height):
         self.time_window = time_window
         self.browser_height = browser_height
-        self.stories = set()
+
+        # Stories are stored in buckets in descending order of score,
+        # keyed by their browser height; and by their id.
+        self.stories_by_bucket = {}
+        self.stories_by_id = {}
+
+        # Rules are stored in a list where list index corresponds to
+        # browser height for that rule.
         self.rules = []
 
     def update(self, update_time):
@@ -16,6 +23,34 @@ class FeedOptimizerSession(object):
 
     def _build_rules(self):
         """Build a set of dynamic programming rules for selecting stories."""
+        # For now, built from scratch every time.
+        rules = [set()]
+
+        for browser_height in range(1, self.browser_height + 1):
+            possible_rules = []
+            for story_height, story_bucket in \
+                    self.stories_by_bucket.iteritems():
+                # Skip this bucket if its story height is greater than
+                # the browser height.
+                if browser_height - story_height < 0:
+                    continue
+
+                previous_rule = rules[browser_height - story_height]
+
+                # Find the highest-scoring story of this length not already
+                # used in the previous_rule and add it to a new candidate rule.
+                for story in story_bucket:
+                    if story not in previous_rule:
+                        possible_rules.append(previous_rule.copy())
+                        possible_rules[-1].add(story)
+                        break
+
+            rules[browser_height] = max(
+                possible_rules,
+                key=lambda rule: sum(
+                    self.stories_by_id[id].score for id in rule
+                )
+            )
 
     def add_story(self, story_time, story_score, story_height):
         """Add a story."""
