@@ -71,8 +71,8 @@ class FeedOptimizerSession(object):
         # Remove old stories.
         try:
             while (
-                refresh_time - self.stories_by_id[self.oldest_story_id].time >
-                self.time_window
+                refresh_time - self.time_window >
+                self.stories_by_id[self.oldest_story_id].time
             ):
                 self._remove_story(self.oldest_story_id)
                 self.oldest_story_id += 1
@@ -81,13 +81,20 @@ class FeedOptimizerSession(object):
         # (self.oldest_story_id is greater than self.current_story_id).
         # We can short-circuit here and return an empty feed.
         except KeyError:
-            pass
+            return "0 0"
 
-        # Build dyanamic programming rules.
+        # Build dynamic programming rules.
         rules = [set()]
 
         for browser_height in range(1, self.browser_height + 1):
-            possible_rules = []
+            # Begin with the rule representing the best available feed for
+            # the previous browser height.
+            possible_rules = [rules[browser_height - 1]]
+
+            # See if we can improve on the rule for the previous browser
+            # height by creating a set of candidate rules obtained by
+            # adding the highest-scoring unused story of each available
+            # story height.
             for story_height, story_bucket in \
                     self.stories_by_bucket.iteritems():
                 # Skip this bucket if its story height is greater than
@@ -95,22 +102,37 @@ class FeedOptimizerSession(object):
                 if browser_height - story_height < 0:
                     continue
 
+                # Fetch the rule representing the best feed that could
+                # accommodate a story of this height.
                 previous_rule = rules[browser_height - story_height]
 
-                # Find the highest-scoring story of this length not already
-                # used in the previous_rule and add it to a new candidate rule.
+                # Find the highest-scoring story of this height not
+                # already used in the previous_rule, if any, and add it
+                # to a new candidate rule.
                 for story in story_bucket:
                     if story not in previous_rule:
                         possible_rules.append(previous_rule.copy())
                         possible_rules[-1].add(story)
                         break
 
+            # Select the highest-scoring rule from among our candidate rules.
             rules[browser_height] = max(
                 possible_rules,
                 key=lambda rule: sum(
-                    self.stories_by_id[id].score for id in rule
+                    self.stories_by_id[story_id].score for story_id in rule
                 )
             )
+
+        # Build our optimal feed from the rule representing the browser
+        # height.
+        return "{} {} {}".format(
+            sum(
+                self.stories_by_id[story_id].score
+                for story_id in rules[browser_height]
+            ),
+            len(rules[browser_height]),
+            ' '.join(sorted(rules[browser_height]))
+        )
 
 
 def main():
@@ -125,7 +147,7 @@ def main():
         if event[0] == 'S':
             session.add_story(*event[2:].split())
         elif event[0] == 'R':
-            session.refresh(event[2:])
+            print session.refresh(event[2:])
         else:
             raise ValueError("Unrecognized input format.")
 
