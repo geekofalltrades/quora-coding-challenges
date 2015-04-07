@@ -22,11 +22,32 @@ class FeedOptimizerSession(object):
         # browser height for that rule.
         self.rules = []
 
-    def update(self, update_time):
-        """Update internal state based on the current time."""
+    def add_story(self, story_time, story_score, story_height):
+        """Add a story."""
+        self.current_story_id += 1
+        new_story = Story(
+            self.current_story_id,
+            story_time,
+            story_score,
+            story_height
+        )
 
-    def _build_rules(self):
-        """Build a set of dynamic programming rules for selecting stories."""
+        self.stories_by_id[new_story.id] = new_story
+
+        bucket = self.stories_by_bucket.setdefault(new_story.height, [])
+        i = 0
+        while i < len(bucket):
+            if new_story.score > bucket[i].score:
+                bucket.insert(i, new_story)
+                break
+            i += 1
+        else:
+            bucket.append(new_story)
+
+    def refresh(self, refresh_time):
+        """Refresh the page.
+        Build a set of dynamic programming rules to determine optimal feed.
+        """
         # For now, built from scratch every time.
         rules = [set()]
 
@@ -55,35 +76,6 @@ class FeedOptimizerSession(object):
                     self.stories_by_id[id].score for id in rule
                 )
             )
-
-    def add_story(self, story_time, story_score, story_height):
-        """Add a story."""
-        self.current_story_id += 1
-        new_story = Story(
-            self.current_story_id,
-            story_time,
-            story_score,
-            story_height
-        )
-
-        self.stories_by_id[new_story.id] = new_story
-
-        bucket = self.stories_by_bucket.setdefault(new_story.height, [])
-        i = 0
-        while i < len(bucket):
-            if new_story.score > bucket[i].score:
-                bucket.insert(i, new_story)
-                break
-            i += 1
-        else:
-            bucket.append(new_story)
-
-        # Prune old stories and rebuild dynamic programming rules.
-        self.update(story_time)
-
-    def refresh(self, refresh_time):
-        """Refresh the page."""
-        self.update(refresh_time)
 
 
 def main():
