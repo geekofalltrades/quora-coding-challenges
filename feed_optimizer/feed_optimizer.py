@@ -16,7 +16,10 @@ class FeedOptimizerSession(object):
         # keyed by their browser height; and by their id.
         self.stories_by_bucket = {}
         self.stories_by_id = {}
+
+        # id tracking for allocating new ids and for removing old stories.
         self.current_story_id = 0
+        self.oldest_story_id = 1
 
         # Rules are stored in a list where list index corresponds to
         # browser height for that rule.
@@ -43,6 +46,16 @@ class FeedOptimizerSession(object):
             i += 1
         else:
             bucket.append(new_story)
+
+    def remove_story(self, story_id):
+        """Remove the story with the given id."""
+        story = self.stories_by_id[story_id]
+
+        del self.stories_by_id[story_id]
+
+        self.stories_by_bucket[story.height].remove(story)
+        if not self.stories_by_bucket[story.height]:
+            del self.stories_by_bucket[story.height]
 
     def refresh(self, refresh_time):
         """Refresh the page.
