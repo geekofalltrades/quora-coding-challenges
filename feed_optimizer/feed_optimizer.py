@@ -47,21 +47,43 @@ class FeedOptimizerSession(object):
         else:
             bucket.append(new_story)
 
-    def remove_story(self, story_id):
+    def _remove_story(self, story_id):
         """Remove the story with the given id."""
-        story = self.stories_by_id[story_id]
+        try:
+            story = self.stories_by_id[story_id]
 
-        del self.stories_by_id[story_id]
+            del self.stories_by_id[story_id]
 
-        self.stories_by_bucket[story.height].remove(story)
-        if not self.stories_by_bucket[story.height]:
-            del self.stories_by_bucket[story.height]
+            self.stories_by_bucket[story.height].remove(story)
+            if not self.stories_by_bucket[story.height]:
+                del self.stories_by_bucket[story.height]
+
+        except (KeyError, ValueError):
+            raise LookupError(
+                "Story with id {} does not exist.".format(story_id)
+            )
 
     def refresh(self, refresh_time):
         """Refresh the page.
-        Build a set of dynamic programming rules to determine optimal feed.
+        Prune old stories, then build a set of dynamic programming rules
+        to determine the optimal feed.
         """
-        # For now, built from scratch every time.
+        # Remove old stories.
+        try:
+            while (
+                refresh_time - self.stories_by_id[self.oldest_story_id].time >
+                self.time_window
+            ):
+                self._remove_story(self.oldest_story_id)
+                self.oldest_story_id += 1
+
+        # A KeyError is raised in the case where we have no unexpired stories
+        # (self.oldest_story_id is greater than self.current_story_id).
+        # We can short-circuit here and return an empty feed.
+        except KeyError:
+            pass
+
+        # Build dyanamic programming rules.
         rules = [set()]
 
         for browser_height in range(1, self.browser_height + 1):
