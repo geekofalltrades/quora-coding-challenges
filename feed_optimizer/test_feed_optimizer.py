@@ -196,5 +196,117 @@ class TestFeedOptimizerSession(unittest.TestCase):
         self.assertEqual(4, self.session.oldest_story_id)
         self.assertEqual(0, len(self.session.stories_by_id))
 
+    def test_build_rules_no_stories(self):
+        """Building rules with no stories results in empty rules."""
+        for rule in self.session._build_rules():
+            self.assertEqual(set(), rule)
+
+    def test_build_rules_single_story(self):
+        """A single story appears only when it can be accommodated,
+        appears in all rules after that, and appears only once.
+        """
+        self.session.add_story(10, 20, 30)
+        story = self.session.stories_by_id[1]
+        rules = self.session._build_rules()
+
+        for i in range(30):
+            self.assertEqual(set(), rules[i])
+
+        for i in range(30, len(rules)):
+            self.assertEqual({story}, rules[i])
+
+    def test_build_rules_taller_better_story(self):
+        """A higher-scoring, taller story overtakes a lower-scoring, shorter
+        one when it fits.
+        """
+        self.session.add_story(10, 20, 30)
+        short_story = self.session.stories_by_id[1]
+        self.session.add_story(11, 30, 40)
+        long_story = self.session.stories_by_id[2]
+        rules = self.session._build_rules()
+
+        for i in range(30):
+            self.assertEqual(set(), rules[i])
+
+        for i in range(30, 40):
+            self.assertEqual({short_story}, rules[i])
+
+        for i in range(40, 70):
+            self.assertEqual({long_story}, rules[i])
+
+        for i in range(70, len(rules)):
+            self.assertEqual({long_story, short_story}, rules[i])
+
+    def test_build_rules_shorter_better_story(self):
+        """A higher-scoring, shorter story is preferred to a taller one until
+        both fit.
+        """
+        self.session.add_story(10, 30, 30)
+        short_story = self.session.stories_by_id[1]
+        self.session.add_story(11, 20, 40)
+        long_story = self.session.stories_by_id[2]
+        rules = self.session._build_rules()
+
+        for i in range(30):
+            self.assertEqual(set(), rules[i])
+
+        for i in range(30, 70):
+            self.assertEqual({short_story}, rules[i])
+
+        for i in range(70, len(rules)):
+            self.assertEqual({short_story, long_story}, rules[i])
+
+    def test_build_rules_same_height_same_score(self):
+        """The older of two equal-height, equal-score stories is preferred."""
+        self.session.add_story(10, 30, 30)
+        old_story = self.session.stories_by_id[1]
+        self.session.add_story(11, 30, 30)
+        new_story = self.session.stories_by_id[2]
+        rules = self.session._build_rules()
+
+        for i in range(30):
+            self.assertEqual(set(), rules[i])
+
+        for i in range(30, 60):
+            self.assertEqual({old_story}, rules[i])
+
+        for i in range(60, len(rules)):
+            self.assertEqual({old_story, new_story}, rules[i])
+
+    def test_build_rules_prefer_higher_score(self):
+        """Of two rules, prefer the rule with the higher score."""
+        self.session.add_story(10, 20, 10)
+        self.session.add_story(11, 20, 10)
+        self.session.add_story(12, 50, 20)
+        rules = self.session._build_rules()
+
+        self.assertEqual({self.session.stories_by_id[3]}, rules[20])
+
+    def test_build_rules_prefer_fewer_stories(self):
+        """Of two rules with the same score, prefer the rule with fewer
+        stories.
+        """
+        self.session.add_story(10, 20, 10)
+        self.session.add_story(11, 20, 10)
+        self.session.add_story(12, 40, 20)
+        rules = self.session._build_rules()
+
+        self.assertEqual({self.session.stories_by_id[3]}, rules[20])
+
+    def test_build_rules_prefer_older_stories(self):
+        """Of two rules with the same score and number of stories, prefer
+        the rule with the lexicographically smaller ids (older set of stories).
+        """
+        self.session.add_story(10, 20, 10)
+        self.session.add_story(11, 10, 5)
+        self.session.add_story(12, 20, 10)
+        self.session.add_story(13, 30, 15)
+        rules = self.session._build_rules()
+
+        self.assertEqual(
+            {self.session.stories_by_id[1], self.session.stories_by_id[3]},
+            rules[20]
+        )
+
 if __name__ == '__main__':
     unittest.main()
