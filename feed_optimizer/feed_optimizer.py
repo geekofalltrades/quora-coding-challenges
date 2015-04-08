@@ -88,10 +88,19 @@ class FeedOptimizerSession(object):
                         possible_rules[-1].add(story)
                         break
 
-            # Select the highest-scoring rule from among our candidate rules.
-            rules.append(max(
+            # Select the highest-scoring rule from among our candidate
+            # rules. We select the minimum, as sorted by negated score,
+            # number of stories, and lexicographically ordered ids. This
+            # results in rules ordered by descending score, ascending
+            # number of stories, and ascending lexicographically ordered
+            # ids.
+            rules.append(min(
                 possible_rules,
-                key=lambda rule: sum(story.score for story in rule)
+                key=lambda rule: (
+                    -1 * sum(story.score for story in rule),
+                    len(rule),
+                    sorted(story.id for story in rule)
+                )
             ))
 
         return rules
