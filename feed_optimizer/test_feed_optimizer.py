@@ -121,6 +121,51 @@ class TestFeedOptimizerSession(unittest.TestCase):
             self.session.stories_by_bucket[30][1]
         )
 
+    def test_remove_story_by_id(self):
+        """Removing a story removes it from the id dict."""
+        self.session.add_story(10, 20, 30)
+        self.session._remove_story(1)
+        self.assertEqual(0, len(self.session.stories_by_id))
+
+    def test_remove_story_empty_bucket(self):
+        """Removing the only story in a bucket drops the bucket."""
+        self.session.add_story(10, 20, 30)
+        self.session.add_story(11, 21, 31)
+        self.session._remove_story(1)
+        self.assertEqual(1, len(self.session.stories_by_bucket))
+        self.assertIn(31, self.session.stories_by_bucket)
+        self.assertNotIn(30, self.session.stories_by_bucket)
+
+    def test_remove_story_non_empty_bucket(self):
+        """Removing a story from a bucket with other stories keeps the bucket.
+        """
+        self.session.add_story(10, 20, 30)
+        self.session.add_story(11, 21, 31)
+        self.session.add_story(12, 22, 30)
+        self.session._remove_story(1)
+        self.assertEqual(2, len(self.session.stories_by_bucket))
+        self.assertIn(31, self.session.stories_by_bucket)
+        self.assertIn(30, self.session.stories_by_bucket)
+        self.assertEqual(1, len(self.session.stories_by_bucket[30]))
+        self.assertEqual(1, len(self.session.stories_by_bucket[31]))
+
+    def test_remove_story_missing_by_id(self):
+        """A LookupError is raised when a story is missing from the id dict."""
+        self.session.add_story(10, 20, 30)
+        del self.session.stories_by_id[1]
+        self.assertRaises(LookupError, self.session._remove_story, 1)
+
+    def test_remove_story_missing_by_bucket(self):
+        """A LookupError is raised when a story is missing from its bucket
+        or its bucket is missing.
+        """
+        self.session.add_story(10, 20, 30)
+        self.session.stories_by_bucket[30] = []
+        self.assertRaises(LookupError, self.session._remove_story, 1)
+
+        self.session.add_story(11, 21, 31)
+        del self.session.stories_by_bucket[31]
+        self.assertRaises(LookupError, self.session._remove_story, 2)
 
 if __name__ == '__main__':
     unittest.main()
