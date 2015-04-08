@@ -91,9 +91,7 @@ class FeedOptimizerSession(object):
             # Select the highest-scoring rule from among our candidate rules.
             rules.append(max(
                 possible_rules,
-                key=lambda rule: sum(
-                    self.stories_by_id[story_id].score for story_id in rule
-                )
+                key=lambda rule: sum(story.score for story in rule)
             ))
 
         return rules
