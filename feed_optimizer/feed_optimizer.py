@@ -21,10 +21,6 @@ class FeedOptimizerSession(object):
         self.current_story_id = 0
         self.oldest_story_id = 1
 
-        # Rules are stored in a list where list index corresponds to
-        # browser height for that rule.
-        self.rules = []
-
     def _remove_story(self, story_id):
         """Remove the story with the given id."""
         try:
