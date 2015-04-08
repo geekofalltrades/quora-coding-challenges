@@ -1,5 +1,5 @@
 import unittest
-from feed_optimizer import FeedOptimizerSession
+from feed_optimizer import FeedOptimizerSession, Story
 
 
 class TestFeedOptimizerSession(unittest.TestCase):
@@ -9,18 +9,117 @@ class TestFeedOptimizerSession(unittest.TestCase):
 
     def test_add_story(self):
         """Stories are added to id and bucket dicts."""
+        # Add first story.
+        self.session.add_story(10, 20, 30)
+
+        # We have one story and it has id 1.
+        self.assertEqual(1, len(self.session.stories_by_id))
+        self.assertIn(1, self.session.stories_by_id)
+        self.assertEqual(1, self.session.current_story_id)
+
+        # The first story is a Story with expected attributes.
+        story = self.session.stories_by_id[1]
+        self.assertIsInstance(story, Story)
+        self.assertEqual(story.id, 1)
+        self.assertEqual(story.time, 10)
+        self.assertEqual(story.score, 20)
+        self.assertEqual(story.height, 30)
+
+        # We have one bucket containing only our story.
+        self.assertEqual(1, len(self.session.stories_by_bucket))
+        self.assertIn(30, self.session.stories_by_bucket)
+        self.assertEqual(1, len(self.session.stories_by_bucket[30]))
+        self.assertIn(
+            story,
+            self.session.stories_by_bucket[30]
+        )
+
+        # Add second story.
+        self.session.add_story(11, 21, 31)
+
+        # The bucket containing the first story is unaffected.
+        self.assertEqual(1, len(self.session.stories_by_bucket[30]))
+
+        # We have two stories and the second has id 2.
+        self.assertEqual(2, len(self.session.stories_by_id))
+        self.assertIn(2, self.session.stories_by_id)
+        self.assertEqual(2, self.session.current_story_id)
+
+        # The second story is a Story with expected attributes.
+        story = self.session.stories_by_id[2]
+        self.assertIsInstance(story, Story)
+        self.assertEqual(story.id, 2)
+        self.assertEqual(story.time, 11)
+        self.assertEqual(story.score, 21)
+        self.assertEqual(story.height, 31)
+
+        # We have a second bucket containing only our second story.
+        self.assertEqual(2, len(self.session.stories_by_bucket))
+        self.assertIn(31, self.session.stories_by_bucket)
+        self.assertEqual(1, len(self.session.stories_by_bucket[31]))
+        self.assertIn(
+            story,
+            self.session.stories_by_bucket[31]
+        )
 
     def test_add_story_collision(self):
         """Stories of the same height are bucketed together."""
+        self.session.add_story(10, 20, 30)
+        self.session.add_story(11, 21, 30)
+
+        self.assertEqual(1, len(self.session.stories_by_bucket))
+        self.assertIn(30, self.session.stories_by_bucket)
+        self.assertEqual(2, len(self.session.stories_by_bucket[30]))
+        self.assertIn(
+            self.session.stories_by_id[1],
+            self.session.stories_by_bucket[30]
+        )
+        self.assertIn(
+            self.session.stories_by_id[2],
+            self.session.stories_by_bucket[30]
+        )
 
     def test_add_story_collision_higher_score(self):
         """A colliding story with a higher score comes first in the bucket."""
+        self.session.add_story(10, 20, 30)
+        self.session.add_story(11, 21, 30)
+
+        self.assertEqual(
+            self.session.stories_by_id[2],
+            self.session.stories_by_bucket[30][0]
+        )
+        self.assertEqual(
+            self.session.stories_by_id[1],
+            self.session.stories_by_bucket[30][1]
+        )
 
     def test_add_story_collision_lower_score(self):
         """A colliding story with a lower score comes second in the bucket."""
+        self.session.add_story(10, 21, 30)
+        self.session.add_story(11, 20, 30)
+
+        self.assertEqual(
+            self.session.stories_by_id[1],
+            self.session.stories_by_bucket[30][0]
+        )
+        self.assertEqual(
+            self.session.stories_by_id[2],
+            self.session.stories_by_bucket[30][1]
+        )
 
     def test_add_story_collision_same_score(self):
         """A colliding story with the same score comes second in the bucket."""
+        self.session.add_story(10, 20, 30)
+        self.session.add_story(11, 20, 30)
+
+        self.assertEqual(
+            self.session.stories_by_id[1],
+            self.session.stories_by_bucket[30][0]
+        )
+        self.assertEqual(
+            self.session.stories_by_id[2],
+            self.session.stories_by_bucket[30][1]
+        )
 
 
 if __name__ == '__main__':
