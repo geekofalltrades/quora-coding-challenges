@@ -145,15 +145,17 @@ class FeedOptimizerSession(object):
 
         # Build our optimal feed from the set of stories.
         return "{} {} {}".format(
-            sum(self.stories_by_id[story_id].score for story_id in rule),
+            sum(story.score for story in rule),
             len(rule),
-            ' '.join(sorted(rule))
+            ' '.join(sorted(str(story.id) for story in rule))
         )
 
 
 def main():
     """The main feed optimizer loop."""
-    num_events, time_window, height = sys.stdin.readline().strip().split()
+    num_events, time_window, height = (
+        int(value) for value in sys.stdin.readline().strip().split()
+    )
 
     session = FeedOptimizerSession(time_window, height)
 
@@ -161,9 +163,9 @@ def main():
         event = sys.stdin.readline().strip()
 
         if event[0] == 'S':
-            session.add_story(*event[2:].split())
+            session.add_story(*(int(value) for value in event[2:].split()))
         elif event[0] == 'R':
-            print session.refresh(event[2:])
+            print session.refresh(int(event[2:]))
         else:
             raise ValueError("Unrecognized input format.")
 
