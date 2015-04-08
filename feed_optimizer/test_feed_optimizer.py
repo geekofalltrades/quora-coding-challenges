@@ -167,5 +167,34 @@ class TestFeedOptimizerSession(unittest.TestCase):
         del self.session.stories_by_bucket[31]
         self.assertRaises(LookupError, self.session._remove_story, 2)
 
+    def test_prune_stories_empty(self):
+        """Pruning when empty has no effect."""
+        self.session._prune_stories(0)
+        self.assertEqual(1, self.session.oldest_story_id)
+
+    def test_prune_stories_expired_stories(self):
+        """Pruning removes expired stories and leaves valid stories."""
+        self.session.add_story(10, 20, 30)
+        self.session.add_story(11, 21, 31)
+        self.session.add_story(12, 22, 32)
+
+        self.session._prune_stories(11)
+
+        self.assertEqual(2, self.session.oldest_story_id)
+        self.assertNotIn(1, self.session.stories_by_id)
+        self.assertIn(2, self.session.stories_by_id)
+        self.assertIn(3, self.session.stories_by_id)
+
+    def test_prune_stories_until_empty(self):
+        """We can prune all stories if they are all expired."""
+        self.session.add_story(10, 20, 30)
+        self.session.add_story(11, 21, 31)
+        self.session.add_story(12, 22, 32)
+
+        self.session._prune_stories(13)
+
+        self.assertEqual(4, self.session.oldest_story_id)
+        self.assertEqual(0, len(self.session.stories_by_id))
+
 if __name__ == '__main__':
     unittest.main()
