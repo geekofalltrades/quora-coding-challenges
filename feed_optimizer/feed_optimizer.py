@@ -89,12 +89,12 @@ class FeedOptimizerSession(object):
                         break
 
             # Select the highest-scoring rule from among our candidate rules.
-            rules[browser_height] = max(
+            rules.append(max(
                 possible_rules,
                 key=lambda rule: sum(
                     self.stories_by_id[story_id].score for story_id in rule
                 )
-            )
+            ))
 
         return rules
 
