@@ -1,7 +1,7 @@
+import collections
 import sys
-from collections import namedtuple
 
-Story = namedtuple('Story', ['id', 'time', 'score', 'height'])
+Story = collections.namedtuple('Story', ['id', 'time', 'score', 'height'])
 
 
 class FeedOptimizerSession(object):
@@ -68,7 +68,7 @@ class FeedOptimizerSession(object):
                     self.stories_by_bucket.iteritems():
                 # Skip this bucket if its story height is greater than
                 # the browser height.
-                if browser_height - story_height < 0:
+                if story_height > browser_height:
                     continue
 
                 # Fetch the rule representing the best feed that could
@@ -93,11 +93,9 @@ class FeedOptimizerSession(object):
             rules.append(min(
                 possible_rules,
                 key=lambda rule: (
-                    -1 * sum(story.score for story in rule),
+                    -sum(story.score for story in rule),
                     len(rule),
-                    sorted(story.id for story in rule)
-                )
-            ))
+                    sorted(story.id for story in rule))))
 
         return rules
 
@@ -108,8 +106,7 @@ class FeedOptimizerSession(object):
             self.current_story_id,
             story_time,
             story_score,
-            story_height
-        )
+            story_height)
 
         self.stories_by_id[new_story.id] = new_story
 
@@ -125,6 +122,7 @@ class FeedOptimizerSession(object):
 
     def refresh(self, refresh_time):
         """Refresh the page.
+
         Prune old stories, then build a set of dynamic programming rules
         to determine the optimal feed.
         """
@@ -143,15 +141,13 @@ class FeedOptimizerSession(object):
         return "{} {} {}".format(
             sum(story.score for story in rule),
             len(rule),
-            ' '.join(sorted(str(story.id) for story in rule))
-        )
+            ' '.join(sorted(str(story.id) for story in rule)))
 
 
 def main():
     """The main feed optimizer loop."""
     num_events, time_window, height = (
-        int(value) for value in sys.stdin.readline().strip().split()
-    )
+        int(value) for value in sys.stdin.readline().strip().split())
 
     session = FeedOptimizerSession(time_window, height)
 
