@@ -14,7 +14,7 @@ class FeedOptimizerSession(object):
 
         # Stories are stored in buckets in descending order of score,
         # keyed by their browser height; and by their id.
-        self.stories_by_bucket = {}
+        self.stories_by_bucket = collections.defaultdict(list)
         self.stories_by_id = {}
 
         # id tracking for allocating new ids and for removing old stories.
@@ -24,9 +24,7 @@ class FeedOptimizerSession(object):
     def _remove_story(self, story_id):
         """Remove the story with the given id."""
         try:
-            story = self.stories_by_id[story_id]
-
-            del self.stories_by_id[story_id]
+            story = self.stories_by_id.pop(story_id)
 
             self.stories_by_bucket[story.height].remove(story)
             if not self.stories_by_bucket[story.height]:
@@ -34,8 +32,7 @@ class FeedOptimizerSession(object):
 
         except (KeyError, ValueError):
             raise LookupError(
-                "Story with id {} does not exist.".format(story_id)
-            )
+                "Story with id {} does not exist.".format(story_id))
 
     def _prune_stories(self, time):
         """Remove all stories older than the given time."""
@@ -110,7 +107,7 @@ class FeedOptimizerSession(object):
 
         self.stories_by_id[new_story.id] = new_story
 
-        bucket = self.stories_by_bucket.setdefault(new_story.height, [])
+        bucket = self.stories_by_bucket[new_story.height]
         i = 0
         while i < len(bucket):
             if new_story.score > bucket[i].score:
